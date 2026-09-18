@@ -90,7 +90,6 @@ RESEND_FROM = os.environ.get(
     "onboarding@resend.dev"
 ).strip()
 
-# Cấu hình API key cho Resend SDK
 if RESEND_API_KEY:
     resend.api_key = RESEND_API_KEY
 
@@ -123,7 +122,6 @@ app.config["MAX_CONTENT_LENGTH"] = (
     500 * 1024 * 1024
 )
 
-
 ALLOWED_VIDEO_EXTENSIONS = {
     "mp4",
     "mov",
@@ -132,7 +130,6 @@ ALLOWED_VIDEO_EXTENSIONS = {
     "webm",
     "m4v"
 }
-
 
 PROJECT_FFMPEG = os.path.join(
     BASE_DIR,
@@ -153,7 +150,6 @@ FFMPEG_PATH = os.environ.get(
     "FFMPEG_PATH",
     ""
 ).strip()
-
 
 if not FFMPEG_PATH:
 
@@ -260,11 +256,6 @@ def setup_database():
         )
     ]
 
-
-    # -----------------------------------------------------
-    # ROLE
-    # -----------------------------------------------------
-
     if "role" not in columns:
 
         with db.engine.connect() as connection:
@@ -277,11 +268,6 @@ def setup_database():
             )
 
             connection.commit()
-
-
-    # -----------------------------------------------------
-    # STATUS
-    # -----------------------------------------------------
 
     if "status" not in columns:
 
@@ -296,11 +282,6 @@ def setup_database():
 
             connection.commit()
 
-
-    # -----------------------------------------------------
-    # RESET CODE HASH
-    # -----------------------------------------------------
-
     if "reset_code_hash" not in columns:
 
         with db.engine.connect() as connection:
@@ -312,11 +293,6 @@ def setup_database():
             )
 
             connection.commit()
-
-
-    # -----------------------------------------------------
-    # RESET CODE EXPIRES
-    # -----------------------------------------------------
 
     if "reset_code_expires" not in columns:
 
@@ -330,11 +306,6 @@ def setup_database():
 
             connection.commit()
 
-
-    # -----------------------------------------------------
-    # FIX OLD DATA
-    # -----------------------------------------------------
-
     users = User.query.all()
 
     changed = False
@@ -344,7 +315,6 @@ def setup_database():
         if not user.plan:
 
             user.plan = "Free"
-
             changed = True
 
         if user.plan not in [
@@ -353,14 +323,11 @@ def setup_database():
         ]:
 
             user.plan = "Free"
-
             changed = True
-
 
         if not user.role:
 
             user.role = "User"
-
             changed = True
 
         if user.role not in [
@@ -369,14 +336,11 @@ def setup_database():
         ]:
 
             user.role = "User"
-
             changed = True
-
 
         if not user.status:
 
             user.status = "Active"
-
             changed = True
 
         if user.status not in [
@@ -385,13 +349,7 @@ def setup_database():
         ]:
 
             user.status = "Active"
-
             changed = True
-
-
-    # -----------------------------------------------------
-    # AUTO ADMIN
-    # -----------------------------------------------------
 
     admin_username = os.environ.get(
         "ADMIN_USERNAME",
@@ -412,9 +370,7 @@ def setup_database():
             if admin_user.role != "Admin":
 
                 admin_user.role = "Admin"
-
                 changed = True
-
 
     if changed:
 
@@ -502,9 +458,7 @@ def render_home(
     ):
 
         session.clear()
-
         current_user = None
-
 
     return render_template(
 
@@ -541,6 +495,7 @@ def render_home(
         error=error,
 
         success=success
+
     )
 
 
@@ -584,13 +539,11 @@ def register():
         ""
     )
 
-
     if not username:
 
         return render_home(
             error="Vui lòng nhập username."
         )
-
 
     if not email:
 
@@ -598,26 +551,21 @@ def register():
             error="Vui lòng nhập email."
         )
 
-
     if len(password) < 6:
 
         return render_home(
             error=(
-                "Mật khẩu phải có "
-                "ít nhất 6 ký tự."
+                "Mật khẩu phải có ít nhất 6 ký tự."
             )
         )
-
 
     if password != password2:
 
         return render_home(
             error=(
-                "Mật khẩu nhập lại "
-                "không giống nhau."
+                "Mật khẩu nhập lại không giống nhau."
             )
         )
-
 
     existing_username = User.query.filter(
         db.func.lower(
@@ -626,13 +574,11 @@ def register():
         == username.lower()
     ).first()
 
-
     if existing_username:
 
         return render_home(
             error="Username đã tồn tại."
         )
-
 
     existing_email = User.query.filter(
         db.func.lower(
@@ -641,22 +587,18 @@ def register():
         == email.lower()
     ).first()
 
-
     if existing_email:
 
         return render_home(
             error="Email đã được sử dụng."
         )
 
-
     admin_username = os.environ.get(
         "ADMIN_USERNAME",
         "admin"
     ).strip()
 
-
     role = "User"
-
 
     if (
         admin_username
@@ -665,7 +607,6 @@ def register():
     ):
 
         role = "Admin"
-
 
     new_user = User(
 
@@ -684,8 +625,8 @@ def register():
         role=role,
 
         status="Active"
-    )
 
+    )
 
     db.session.add(
         new_user
@@ -693,11 +634,9 @@ def register():
 
     db.session.commit()
 
-
     return render_home(
         success=(
-            "Đăng ký thành công! "
-            "Hãy đăng nhập."
+            "Đăng ký thành công! Hãy đăng nhập."
         )
     )
 
@@ -717,7 +656,6 @@ def login():
         ""
     ).strip()
 
-
     if not login_value:
 
         login_value = request.form.get(
@@ -725,12 +663,10 @@ def login():
             ""
         ).strip()
 
-
     password = request.form.get(
         "password",
         ""
     )
-
 
     if (
         not login_value
@@ -739,15 +675,12 @@ def login():
 
         return render_home(
             error=(
-                "Vui lòng nhập "
-                "đầy đủ thông tin."
+                "Vui lòng nhập đầy đủ thông tin."
             )
         )
 
-
     user = User.query.filter(
         db.or_(
-
             db.func.lower(
                 User.username
             )
@@ -757,20 +690,16 @@ def login():
                 User.email
             )
             == login_value.lower()
-
         )
     ).first()
-
 
     if user is None:
 
         return render_home(
             error=(
-                "Tài khoản hoặc "
-                "mật khẩu không đúng."
+                "Tài khoản hoặc mật khẩu không đúng."
             )
         )
-
 
     if not check_password_hash(
         user.password_hash,
@@ -779,26 +708,21 @@ def login():
 
         return render_home(
             error=(
-                "Tài khoản hoặc "
-                "mật khẩu không đúng."
+                "Tài khoản hoặc mật khẩu không đúng."
             )
         )
-
 
     if user.status != "Active":
 
         return render_home(
             error=(
-                "Tài khoản của bạn "
-                "đang bị khóa."
+                "Tài khoản của bạn đang bị khóa."
             )
         )
-
 
     session.clear()
 
     session["user_id"] = user.id
-
 
     return redirect(
         url_for("index")
@@ -834,8 +758,7 @@ def send_reset_email(
     if not RESEND_API_KEY:
 
         message = (
-            "RESEND_API_KEY chưa "
-            "được cấu hình trên Render."
+            "RESEND_API_KEY chưa được cấu hình trên Render."
         )
 
         print(
@@ -844,13 +767,11 @@ def send_reset_email(
         )
 
         return False, message
-
 
     if not RESEND_FROM:
 
         message = (
-            "RESEND_FROM chưa "
-            "được cấu hình trên Render."
+            "RESEND_FROM chưa được cấu hình trên Render."
         )
 
         print(
@@ -860,19 +781,9 @@ def send_reset_email(
 
         return False, message
 
-
     try:
 
-        # -------------------------------------------------
-        # RESEND API KEY
-        # -------------------------------------------------
-
         resend.api_key = RESEND_API_KEY
-
-
-        # -------------------------------------------------
-        # EMAIL PARAMS
-        # -------------------------------------------------
 
         params = {
 
@@ -883,8 +794,16 @@ def send_reset_email(
             ],
 
             "subject": (
-                "Mã xác nhận - "
-                "REUP NVL VIP"
+                "Mã xác nhận - REUP NVL VIP"
+            ),
+
+            "text": (
+                "REUP NVL VIP\n\n"
+                "Mã xác nhận đặt lại mật khẩu của bạn là:\n\n"
+                f"{reset_code}\n\n"
+                "Mã có hiệu lực trong 10 phút.\n\n"
+                "Nếu bạn không yêu cầu thao tác này, "
+                "hãy bỏ qua email."
             ),
 
             "html": f"""
@@ -894,95 +813,167 @@ def send_reset_email(
 
 <head>
 
-    <meta charset="UTF-8">
+<meta charset="UTF-8">
 
-    <meta
-        name="viewport"
-        content="width=device-width,initial-scale=1.0"
-    >
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
 
-    <title>REUP NVL VIP</title>
+<title>REUP NVL VIP</title>
 
 </head>
 
-
 <body
-    style="
-        margin:0;
-        padding:30px;
-        background:#070912;
-        font-family:Arial,Helvetica,sans-serif;
-        color:#ffffff;
-    "
+style="
+    margin:0;
+    padding:0;
+    background:#f3f4f6;
+    font-family:Arial,Helvetica,sans-serif;
+"
+>
+
+<table
+width="100%"
+cellpadding="0"
+cellspacing="0"
+border="0"
+style="
+    background:#f3f4f6;
+    padding:30px 10px;
+"
+>
+
+<tr>
+
+<td align="center">
+
+<table
+width="100%"
+cellpadding="0"
+cellspacing="0"
+border="0"
+style="
+    max-width:520px;
+    background:#ffffff;
+    border-radius:16px;
+    overflow:hidden;
+"
+>
+
+<tr>
+
+<td
+style="
+    padding:28px;
+    background:#111827;
+    text-align:center;
+"
 >
 
 <div
-    style="
-        max-width:520px;
-        margin:0 auto;
-        padding:30px;
-        background:#111526;
-        border:1px solid #292e45;
-        border-radius:18px;
-    "
+style="
+    color:#a78bfa;
+    font-size:24px;
+    font-weight:800;
+"
+>
+REUP NVL VIP
+</div>
+
+</td>
+
+</tr>
+
+<tr>
+
+<td
+style="
+    padding:30px;
+    color:#111827;
+"
 >
 
-    <h2
-        style="
-            margin-top:0;
-            color:#a78bfa;
-        "
-    >
-        REUP NVL VIP
-    </h2>
+<h2
+style="
+    margin:0 0 18px 0;
+"
+>
+Mã xác nhận đặt lại mật khẩu
+</h2>
 
+<p
+style="
+    margin:0 0 16px 0;
+    font-size:15px;
+    line-height:1.6;
+"
+>
+Bạn vừa yêu cầu đặt lại mật khẩu.
+</p>
 
-    <p>
-        Bạn vừa yêu cầu đặt lại mật khẩu.
-    </p>
+<p
+style="
+    margin:0 0 12px 0;
+    font-size:15px;
+    line-height:1.6;
+"
+>
+Mã xác nhận của bạn là:
+</p>
 
-
-    <p>
-        Mã xác nhận của bạn:
-    </p>
-
-
-    <div
-        style="
-            padding:18px;
-            text-align:center;
-            background:#070912;
-            border-radius:14px;
-            color:#c4b5fd;
-            font-size:34px;
-            font-weight:bold;
-            letter-spacing:8px;
-        "
-    >
-        {reset_code}
-    </div>
-
-
-    <p
-        style="
-            margin-top:22px;
-            color:#9ca3af;
-        "
-    >
-        Mã có hiệu lực trong 10 phút.
-    </p>
-
-
-    <p
-        style="
-            color:#9ca3af;
-        "
-    >
-        Nếu bạn không yêu cầu thao tác này,
-        hãy bỏ qua email.
-    </p>
-
+<div
+style="
+    display:block;
+    padding:20px 10px;
+    margin:10px 0 22px 0;
+    background:#f3f4f6;
+    border:2px solid #8b5cf6;
+    border-radius:12px;
+    text-align:center;
+    color:#111827;
+    font-size:38px;
+    line-height:1.2;
+    font-weight:900;
+    letter-spacing:10px;
+"
+>
+{reset_code}
 </div>
+
+<p
+style="
+    margin:0 0 10px 0;
+    font-size:14px;
+    line-height:1.6;
+"
+>
+Mã có hiệu lực trong <strong>10 phút</strong>.
+</p>
+
+<p
+style="
+    margin:0;
+    color:#6b7280;
+    font-size:13px;
+    line-height:1.6;
+"
+>
+Nếu bạn không yêu cầu thao tác này,
+hãy bỏ qua email.
+</p>
+
+</td>
+
+</tr>
+
+</table>
+
+</td>
+
+</tr>
+
+</table>
 
 </body>
 
@@ -991,37 +982,25 @@ def send_reset_email(
 
         }
 
-
-        # -------------------------------------------------
-        # SEND
-        # -------------------------------------------------
-
-        result = resend.Emails.send(
+        email_result = resend.Emails.send(
             params
         )
 
-
         print(
             "[RESEND] OK:",
-            result
+            email_result
         )
 
-
-        return True, result
-
+        return True, email_result
 
     except Exception as exc:
 
-        error_text = str(
-            exc
-        )
-
+        error_text = str(exc)
 
         print(
             "[RESEND] ERROR:",
             error_text
         )
-
 
         return False, error_text
 
@@ -1043,7 +1022,6 @@ def forgot_password():
         or request.form
     )
 
-
     email = str(
         data.get(
             "email",
@@ -1051,19 +1029,15 @@ def forgot_password():
         )
     ).strip().lower()
 
-
     if not email:
 
         return jsonify({
 
             "success": False,
 
-            "error": (
-                "Vui lòng nhập email."
-            )
+            "error": "Vui lòng nhập email."
 
         }), 400
-
 
     user = User.query.filter(
 
@@ -1074,8 +1048,6 @@ def forgot_password():
 
     ).first()
 
-
-    # Không tiết lộ email có tồn tại
     if user is None:
 
         return jsonify({
@@ -1089,7 +1061,6 @@ def forgot_password():
 
         })
 
-
     if user.status != "Active":
 
         return jsonify({
@@ -1097,21 +1068,14 @@ def forgot_password():
             "success": False,
 
             "error": (
-                "Tài khoản của bạn "
-                "đang bị khóa."
+                "Tài khoản của bạn đang bị khóa."
             )
 
         }), 403
 
-
-    # -----------------------------------------------------
-    # GENERATE 6 DIGIT CODE
-    # -----------------------------------------------------
-
     reset_code = (
         f"{secrets.randbelow(1000000):06d}"
     )
-
 
     user.reset_code_hash = (
         generate_password_hash(
@@ -1119,19 +1083,18 @@ def forgot_password():
         )
     )
 
-
     user.reset_code_expires = (
         datetime.utcnow()
         + timedelta(minutes=10)
     )
 
-
     db.session.commit()
 
-
-    # -----------------------------------------------------
-    # SEND EMAIL
-    # -----------------------------------------------------
+    print(
+        "[RESET EMAIL] "
+        "ĐANG GỬI MÃ 6 SỐ TỚI:",
+        user.email
+    )
 
     ok, result = send_reset_email(
 
@@ -1141,7 +1104,6 @@ def forgot_password():
 
     )
 
-
     if not ok:
 
         user.reset_code_hash = None
@@ -1150,12 +1112,10 @@ def forgot_password():
 
         db.session.commit()
 
-
         print(
             "[RESET EMAIL] LOI:",
             result
         )
-
 
         return jsonify({
 
@@ -1168,20 +1128,18 @@ def forgot_password():
 
         }), 500
 
-
     print(
         "[RESET EMAIL] DA GUI:",
         user.email
     )
-
 
     return jsonify({
 
         "success": True,
 
         "message": (
-            "Mã xác nhận đã được "
-            "gửi về email."
+            "Mã xác nhận đã được gửi "
+            "về email."
         )
 
     })
@@ -1204,7 +1162,6 @@ def reset_password():
         or request.form
     )
 
-
     email = str(
         data.get(
             "email",
@@ -1212,14 +1169,12 @@ def reset_password():
         )
     ).strip().lower()
 
-
     code = str(
         data.get(
             "code",
             ""
         )
     ).strip()
-
 
     new_password = str(
 
@@ -1240,19 +1195,15 @@ def reset_password():
 
     )
 
-
     if not email:
 
         return jsonify({
 
             "success": False,
 
-            "error": (
-                "Vui lòng nhập email."
-            )
+            "error": "Vui lòng nhập email."
 
         }), 400
-
 
     if not code:
 
@@ -1260,13 +1211,9 @@ def reset_password():
 
             "success": False,
 
-            "error": (
-                "Vui lòng nhập mã "
-                "xác nhận."
-            )
+            "error": "Vui lòng nhập mã xác nhận."
 
         }), 400
-
 
     if not new_password:
 
@@ -1274,13 +1221,9 @@ def reset_password():
 
             "success": False,
 
-            "error": (
-                "Vui lòng nhập "
-                "mật khẩu mới."
-            )
+            "error": "Vui lòng nhập mật khẩu mới."
 
         }), 400
-
 
     if len(new_password) < 6:
 
@@ -1289,12 +1232,10 @@ def reset_password():
             "success": False,
 
             "error": (
-                "Mật khẩu mới phải có "
-                "ít nhất 6 ký tự."
+                "Mật khẩu mới phải có ít nhất 6 ký tự."
             )
 
         }), 400
-
 
     user = User.query.filter(
 
@@ -1305,20 +1246,15 @@ def reset_password():
 
     ).first()
 
-
     if user is None:
 
         return jsonify({
 
             "success": False,
 
-            "error": (
-                "Mã xác nhận "
-                "không hợp lệ."
-            )
+            "error": "Mã xác nhận không hợp lệ."
 
         }), 400
-
 
     if not user.reset_code_hash:
 
@@ -1326,13 +1262,9 @@ def reset_password():
 
             "success": False,
 
-            "error": (
-                "Mã xác nhận "
-                "không hợp lệ."
-            )
+            "error": "Mã xác nhận không hợp lệ."
 
         }), 400
-
 
     if not user.reset_code_expires:
 
@@ -1340,13 +1272,9 @@ def reset_password():
 
             "success": False,
 
-            "error": (
-                "Mã xác nhận "
-                "không hợp lệ."
-            )
+            "error": "Mã xác nhận không hợp lệ."
 
         }), 400
-
 
     if (
         datetime.utcnow()
@@ -1359,38 +1287,26 @@ def reset_password():
 
         db.session.commit()
 
-
         return jsonify({
 
             "success": False,
 
-            "error": (
-                "Mã xác nhận "
-                "đã hết hạn."
-            )
+            "error": "Mã xác nhận đã hết hạn."
 
         }), 400
 
-
     if not check_password_hash(
-
         user.reset_code_hash,
-
         code
-
     ):
 
         return jsonify({
 
             "success": False,
 
-            "error": (
-                "Mã xác nhận "
-                "không đúng."
-            )
+            "error": "Mã xác nhận không đúng."
 
         }), 400
-
 
     user.password_hash = (
         generate_password_hash(
@@ -1398,14 +1314,11 @@ def reset_password():
         )
     )
 
-
     user.reset_code_hash = None
 
     user.reset_code_expires = None
 
-
     db.session.commit()
-
 
     return jsonify({
 
@@ -1431,19 +1344,15 @@ def change_password():
 
     current_user = get_current_user()
 
-
     if current_user is None:
 
         return jsonify({
 
             "success": False,
 
-            "error": (
-                "Bạn chưa đăng nhập."
-            )
+            "error": "Bạn chưa đăng nhập."
 
         }), 401
-
 
     if current_user.status != "Active":
 
@@ -1454,12 +1363,10 @@ def change_password():
             "success": False,
 
             "error": (
-                "Tài khoản của bạn "
-                "đang bị khóa."
+                "Tài khoản của bạn đang bị khóa."
             )
 
         }), 403
-
 
     data = (
         request.get_json(
@@ -1467,7 +1374,6 @@ def change_password():
         )
         or request.form
     )
-
 
     current_password = str(
 
@@ -1488,7 +1394,6 @@ def change_password():
 
     )
 
-
     new_password = str(
 
         data.get(
@@ -1508,7 +1413,6 @@ def change_password():
 
     )
 
-
     if not current_password:
 
         return jsonify({
@@ -1516,12 +1420,10 @@ def change_password():
             "success": False,
 
             "error": (
-                "Vui lòng nhập "
-                "mật khẩu hiện tại."
+                "Vui lòng nhập mật khẩu hiện tại."
             )
 
         }), 400
-
 
     if not new_password:
 
@@ -1530,12 +1432,10 @@ def change_password():
             "success": False,
 
             "error": (
-                "Vui lòng nhập "
-                "mật khẩu mới."
+                "Vui lòng nhập mật khẩu mới."
             )
 
         }), 400
-
 
     if len(new_password) < 6:
 
@@ -1544,19 +1444,14 @@ def change_password():
             "success": False,
 
             "error": (
-                "Mật khẩu mới phải có "
-                "ít nhất 6 ký tự."
+                "Mật khẩu mới phải có ít nhất 6 ký tự."
             )
 
         }), 400
 
-
     if not check_password_hash(
-
         current_user.password_hash,
-
         current_password
-
     ):
 
         return jsonify({
@@ -1564,12 +1459,10 @@ def change_password():
             "success": False,
 
             "error": (
-                "Mật khẩu hiện tại "
-                "không đúng."
+                "Mật khẩu hiện tại không đúng."
             )
 
         }), 400
-
 
     current_user.password_hash = (
         generate_password_hash(
@@ -1577,17 +1470,13 @@ def change_password():
         )
     )
 
-
     db.session.commit()
-
 
     return jsonify({
 
         "success": True,
 
-        "message": (
-            "Đổi mật khẩu thành công."
-        )
+        "message": "Đổi mật khẩu thành công."
 
     })
 
@@ -1603,16 +1492,13 @@ def admin():
         require_admin()
     )
 
-
     if error_response:
 
         return error_response
 
-
     users = User.query.order_by(
         User.id.asc()
     ).all()
-
 
     return render_template(
 
@@ -1653,11 +1539,9 @@ def admin_change_plan(user_id):
         require_admin()
     )
 
-
     if error_response:
 
         return error_response
-
 
     if user_id == current_user.id:
 
@@ -1665,12 +1549,10 @@ def admin_change_plan(user_id):
             url_for("admin")
         )
 
-
     user = db.session.get(
         User,
         user_id
     )
-
 
     if user is None:
 
@@ -1678,12 +1560,10 @@ def admin_change_plan(user_id):
             url_for("admin")
         )
 
-
     new_plan = request.form.get(
         "plan",
         ""
     )
-
 
     if new_plan not in [
         "Free",
@@ -1694,11 +1574,9 @@ def admin_change_plan(user_id):
             url_for("admin")
         )
 
-
     user.plan = new_plan
 
     db.session.commit()
-
 
     return redirect(
         url_for("admin")
@@ -1719,11 +1597,9 @@ def admin_change_status(user_id):
         require_admin()
     )
 
-
     if error_response:
 
         return error_response
-
 
     if user_id == current_user.id:
 
@@ -1731,12 +1607,10 @@ def admin_change_status(user_id):
             url_for("admin")
         )
 
-
     user = db.session.get(
         User,
         user_id
     )
-
 
     if user is None:
 
@@ -1744,12 +1618,10 @@ def admin_change_status(user_id):
             url_for("admin")
         )
 
-
     new_status = request.form.get(
         "status",
         ""
     )
-
 
     if new_status not in [
         "Active",
@@ -1760,11 +1632,9 @@ def admin_change_status(user_id):
             url_for("admin")
         )
 
-
     user.status = new_status
 
     db.session.commit()
-
 
     return redirect(
         url_for("admin")
@@ -1785,11 +1655,9 @@ def admin_delete_user(user_id):
         require_admin()
     )
 
-
     if error_response:
 
         return error_response
-
 
     if user_id == current_user.id:
 
@@ -1797,12 +1665,10 @@ def admin_delete_user(user_id):
             url_for("admin")
         )
 
-
     user = db.session.get(
         User,
         user_id
     )
-
 
     if user is None:
 
@@ -1810,18 +1676,15 @@ def admin_delete_user(user_id):
             url_for("admin")
         )
 
-
     if user.role == "Admin":
 
         return redirect(
             url_for("admin")
         )
 
-
     db.session.delete(user)
 
     db.session.commit()
-
 
     return redirect(
         url_for("admin")
@@ -1840,19 +1703,15 @@ def upload_video():
 
     current_user = get_current_user()
 
-
     if current_user is None:
 
         return jsonify({
 
             "success": False,
 
-            "error": (
-                "Bạn chưa đăng nhập."
-            )
+            "error": "Bạn chưa đăng nhập."
 
         }), 401
-
 
     if current_user.status != "Active":
 
@@ -1863,17 +1722,14 @@ def upload_video():
             "success": False,
 
             "error": (
-                "Tài khoản của bạn "
-                "đang bị khóa."
+                "Tài khoản của bạn đang bị khóa."
             )
 
         }), 403
 
-
     file = request.files.get(
         "video"
     )
-
 
     if file is None or not file.filename:
 
@@ -1881,12 +1737,9 @@ def upload_video():
 
             "success": False,
 
-            "error": (
-                "Vui lòng chọn video."
-            )
+            "error": "Vui lòng chọn video."
 
         }), 400
-
 
     if not allowed_video(
         file.filename
@@ -1897,17 +1750,14 @@ def upload_video():
             "success": False,
 
             "error": (
-                "Định dạng video "
-                "không được hỗ trợ."
+                "Định dạng video không được hỗ trợ."
             )
 
         }), 400
 
-
     original_name = secure_filename(
         file.filename
     )
-
 
     if (
         not original_name
@@ -1919,12 +1769,10 @@ def upload_video():
             "success": False,
 
             "error": (
-                "Tên file video "
-                "không hợp lệ."
+                "Tên file video không hợp lệ."
             )
 
         }), 400
-
 
     extension = (
         original_name
@@ -1935,39 +1783,31 @@ def upload_video():
         .lower()
     )
 
-
     file_id = uuid.uuid4().hex
 
-
     input_name = (
-        f"{file_id}_input."
-        f"{extension}"
+        f"{file_id}_input.{extension}"
     )
-
 
     output_name = (
         f"{file_id}_output.mp4"
     )
-
 
     input_path = os.path.join(
         UPLOAD_DIR,
         input_name
     )
 
-
     output_path = os.path.join(
         OUTPUT_DIR,
         output_name
     )
-
 
     try:
 
         file.save(
             input_path
         )
-
 
         command = [
 
@@ -2002,7 +1842,6 @@ def upload_video():
             output_path
         ]
 
-
         result = subprocess.run(
 
             command,
@@ -2019,21 +1858,19 @@ def upload_video():
 
         )
 
-
         if result.returncode != 0:
 
-            print()
             print(
                 "========== FFMPEG ERROR =========="
             )
+
             print(
                 result.stderr
             )
+
             print(
                 "=================================="
             )
-            print()
-
 
             for path in [
                 input_path,
@@ -2042,9 +1879,7 @@ def upload_video():
 
                 try:
 
-                    if os.path.exists(
-                        path
-                    ):
+                    if os.path.exists(path):
 
                         os.remove(path)
 
@@ -2052,18 +1887,15 @@ def upload_video():
 
                     pass
 
-
             return jsonify({
 
                 "success": False,
 
                 "error": (
-                    "FFmpeg xử lý "
-                    "video thất bại."
+                    "FFmpeg xử lý video thất bại."
                 )
 
             }), 500
-
 
         if (
             not os.path.isfile(
@@ -2081,30 +1913,23 @@ def upload_video():
 
                 try:
 
-                    if os.path.exists(
-                        path
-                    ):
+                    if os.path.exists(path):
 
-                        os.remove(
-                            path
-                        )
+                        os.remove(path)
 
                 except OSError:
 
                     pass
-
 
             return jsonify({
 
                 "success": False,
 
                 "error": (
-                    "Không tạo được "
-                    "video đầu ra."
+                    "Không tạo được video đầu ra."
                 )
 
             }), 500
-
 
         try:
 
@@ -2120,7 +1945,6 @@ def upload_video():
 
             pass
 
-
         return jsonify({
 
             "success": True,
@@ -2133,15 +1957,11 @@ def upload_video():
             "filename": output_name,
 
             "download_url": url_for(
-
                 "download_video",
-
                 filename=output_name
-
             )
 
         })
-
 
     except FileNotFoundError:
 
@@ -2152,45 +1972,37 @@ def upload_video():
 
             try:
 
-                if os.path.exists(
-                    path
-                ):
+                if os.path.exists(path):
 
-                    os.remove(
-                        path
-                    )
+                    os.remove(path)
 
             except OSError:
 
                 pass
-
 
         return jsonify({
 
             "success": False,
 
             "error": (
-                "Không tìm thấy "
-                "chương trình FFmpeg."
+                "Không tìm thấy chương trình FFmpeg."
             )
 
         }), 500
 
-
     except Exception as exc:
 
-        print()
         print(
             "========== UPLOAD ERROR =========="
         )
+
         print(
             str(exc)
         )
+
         print(
             "=================================="
         )
-        print()
-
 
         for path in [
             input_path,
@@ -2199,26 +2011,20 @@ def upload_video():
 
             try:
 
-                if os.path.exists(
-                    path
-                ):
+                if os.path.exists(path):
 
-                    os.remove(
-                        path
-                    )
+                    os.remove(path)
 
             except OSError:
 
                 pass
-
 
         return jsonify({
 
             "success": False,
 
             "error": (
-                "Không thể xử lý "
-                "video trên server."
+                "Không thể xử lý video trên server."
             )
 
         }), 500
@@ -2235,13 +2041,11 @@ def download_video(filename):
 
     current_user = get_current_user()
 
-
     if current_user is None:
 
         return redirect(
             url_for("index")
         )
-
 
     if current_user.status != "Active":
 
@@ -2251,11 +2055,9 @@ def download_video(filename):
             url_for("index")
         )
 
-
     safe_name = secure_filename(
         filename
     )
-
 
     if safe_name != filename:
 
@@ -2263,7 +2065,6 @@ def download_video(filename):
             "File không hợp lệ.",
             400
         )
-
 
     if not safe_name.endswith(
         "_output.mp4"
@@ -2274,12 +2075,10 @@ def download_video(filename):
             400
         )
 
-
     file_path = os.path.join(
         OUTPUT_DIR,
         safe_name
     )
-
 
     if not os.path.isfile(
         file_path
@@ -2289,7 +2088,6 @@ def download_video(filename):
             "Không tìm thấy file.",
             404
         )
-
 
     return send_from_directory(
 
@@ -2317,24 +2115,22 @@ def check_db():
 
     current_user = get_current_user()
 
-
     if (
         current_user is None
         or current_user.role != "Admin"
     ):
 
         return jsonify({
-            "error": "Unauthorized"
-        }), 403
 
+            "error": "Unauthorized"
+
+        }), 403
 
     users = User.query.order_by(
         User.id.asc()
     ).all()
 
-
     result = []
-
 
     for user in users:
 
@@ -2353,7 +2149,6 @@ def check_db():
             "status": user.status
 
         })
-
 
     return jsonify(
         result
@@ -2415,9 +2210,7 @@ def service_worker():
 # =========================================================
 
 @app.errorhandler(413)
-def request_entity_too_large(
-    error
-):
+def request_entity_too_large(error):
 
     if request.path == "/upload":
 
@@ -2426,12 +2219,10 @@ def request_entity_too_large(
             "success": False,
 
             "error": (
-                "Video vượt quá "
-                "giới hạn 500MB."
+                "Video vượt quá giới hạn 500MB."
             )
 
         }), 413
-
 
     return (
         "File quá lớn.",
@@ -2449,43 +2240,12 @@ if __name__ == "__main__":
 
         setup_database()
 
-
     port = int(
         os.environ.get(
             "PORT",
             "5000"
         )
     )
-
-
-    print()
-    print(
-        "======================================"
-    )
-    print(
-        "          REUP NVL VIP"
-    )
-    print(
-        "======================================"
-    )
-    print(
-        "Database:"
-    )
-    print(
-        DB_PATH
-    )
-    print()
-    print(
-        "Admin:"
-    )
-    print(
-        f"http://127.0.0.1:{port}/admin"
-    )
-    print(
-        "======================================"
-    )
-    print()
-
 
     app.run(
 
