@@ -126,10 +126,7 @@ def allowed_video(filename):
         .lower()
     )
 
-    return (
-        extension
-        in ALLOWED_VIDEO_EXTENSIONS
-    )
+    return extension in ALLOWED_VIDEO_EXTENSIONS
 
 
 # =========================================================
@@ -355,10 +352,13 @@ def send_reset_email(
             )
 
             try:
+
                 result = json.loads(
                     response_body
                 )
+
             except Exception:
+
                 result = {
                     "raw": response_body
                 }
@@ -512,10 +512,6 @@ def setup_database():
     }
 
 
-    # -----------------------------------------------------
-    # ROLE
-    # -----------------------------------------------------
-
     if "role" not in columns:
 
         with db.engine.connect() as connection:
@@ -528,10 +524,6 @@ def setup_database():
 
             connection.commit()
 
-
-    # -----------------------------------------------------
-    # STATUS
-    # -----------------------------------------------------
 
     if "status" not in columns:
 
@@ -546,10 +538,6 @@ def setup_database():
             connection.commit()
 
 
-    # -----------------------------------------------------
-    # RESET CODE HASH
-    # -----------------------------------------------------
-
     if "reset_code_hash" not in columns:
 
         with db.engine.connect() as connection:
@@ -561,10 +549,6 @@ def setup_database():
 
             connection.commit()
 
-
-    # -----------------------------------------------------
-    # RESET CODE EXPIRES
-    # -----------------------------------------------------
 
     if "reset_code_expires" not in columns:
 
@@ -578,10 +562,6 @@ def setup_database():
             connection.commit()
 
 
-    # -----------------------------------------------------
-    # CHUẨN HÓA USER CŨ
-    # -----------------------------------------------------
-
     users = User.query.all()
 
     changed = False
@@ -592,7 +572,6 @@ def setup_database():
         if not user.role:
 
             user.role = "User"
-
             changed = True
 
 
@@ -602,14 +581,12 @@ def setup_database():
         ]:
 
             user.role = "User"
-
             changed = True
 
 
         if not user.status:
 
             user.status = "Active"
-
             changed = True
 
 
@@ -619,7 +596,6 @@ def setup_database():
         ]:
 
             user.status = "Active"
-
             changed = True
 
 
@@ -629,7 +605,6 @@ def setup_database():
         ]:
 
             user.plan = "Free"
-
             changed = True
 
 
@@ -666,7 +641,7 @@ def auto_set_admin():
         if user is None:
 
             print(
-                "[AUTO ADMIN] Chua co tai khoan:",
+                "[AUTO ADMIN] Chưa có tài khoản:",
                 admin_username
             )
 
@@ -679,14 +654,12 @@ def auto_set_admin():
         if user.role != "Admin":
 
             user.role = "Admin"
-
             changed = True
 
 
         if user.status != "Active":
 
             user.status = "Active"
-
             changed = True
 
 
@@ -713,7 +686,7 @@ def auto_set_admin():
 
 
 # =========================================================
-# INITIALIZE DATABASE
+# INIT
 # =========================================================
 
 with app.app_context():
@@ -1240,9 +1213,7 @@ def change_password():
 
         return jsonify({
             "success": False,
-            "error": (
-                "Bạn chưa đăng nhập."
-            )
+            "error": "Bạn chưa đăng nhập."
         }), 401
 
 
@@ -1350,9 +1321,7 @@ def forgot_password():
 
         return jsonify({
             "success": False,
-            "error": (
-                "Vui lòng nhập email."
-            )
+            "error": "Vui lòng nhập email."
         }), 400
 
 
@@ -1374,9 +1343,8 @@ def forgot_password():
 
 
     reset_code = str(
-        secrets.randbelow(
-            900000
-        ) + 100000
+        secrets.randbelow(900000)
+        + 100000
     )
 
 
@@ -1389,9 +1357,7 @@ def forgot_password():
 
     user.reset_code_expires = (
         datetime.utcnow()
-        + timedelta(
-            minutes=10
-        )
+        + timedelta(minutes=10)
     )
 
 
@@ -1426,7 +1392,7 @@ def forgot_password():
             "success": False,
             "error": (
                 "Không gửi được email. "
-                "Hãy kiểm tra cấu hình Resend trên Render."
+                "Kiểm tra Resend trên Render."
             )
         }), 500
 
@@ -1477,9 +1443,7 @@ def reset_password():
 
         return jsonify({
             "success": False,
-            "error": (
-                "Vui lòng nhập email."
-            )
+            "error": "Vui lòng nhập email."
         }), 400
 
 
@@ -1610,7 +1574,7 @@ def reset_password():
 
 
 # =========================================================
-# ADMIN PAGE
+# ADMIN
 # =========================================================
 
 @app.route("/admin")
@@ -1713,7 +1677,6 @@ def admin_change_plan(user_id):
 
     user.plan = new_plan
 
-
     db.session.commit()
 
 
@@ -1780,7 +1743,6 @@ def admin_change_status(user_id):
 
     user.status = new_status
 
-
     db.session.commit()
 
 
@@ -1839,7 +1801,6 @@ def admin_delete_user(user_id):
     db.session.delete(
         user
     )
-
 
     db.session.commit()
 
@@ -2189,26 +2150,26 @@ if __name__ == "__main__":
     print(
         "======================================"
     )
+
     print(
         "RESEND:"
     )
+
     print(
         "OK"
         if RESEND_API_KEY
         else "CHUA CAI RESEND_API_KEY"
     )
+
     print(
         "======================================"
     )
+
     print()
 
 
     app.run(
-
         host="0.0.0.0",
-
         port=port,
-
         debug=False
-
     )
