@@ -28,10 +28,6 @@
             font-family: inherit;
         }
 
-        /* =========================
-           LOGIN / REGISTER
-        ========================= */
-
         .auth-screen {
             min-height: 100vh;
             display: flex;
@@ -153,10 +149,6 @@
             margin-bottom: 15px;
         }
 
-        /* =========================
-           MAIN APP
-        ========================= */
-
         .app {
             min-height: 100vh;
         }
@@ -224,10 +216,6 @@
         .welcome p {
             color: #858ba0;
         }
-
-        /* =========================
-           USER ACCOUNT CARD
-        ========================= */
 
         .account-grid {
             display: grid;
@@ -314,10 +302,6 @@
             color: #fcd34d;
         }
 
-        /* =========================
-           PLAN CARD
-        ========================= */
-
         .plan-card {
             position: relative;
             overflow: hidden;
@@ -360,10 +344,6 @@
             color: #81889d;
             font-size: 13px;
         }
-
-        /* =========================
-           FUNCTION CARDS
-        ========================= */
 
         .section-title {
             font-size: 21px;
@@ -420,10 +400,6 @@
             border: 1px solid rgba(168, 85, 247, 0.3);
             background: rgba(168, 85, 247, 0.1);
         }
-
-        /* =========================
-           VIDEO UPLOAD
-        ========================= */
 
         .upload-card {
             margin-bottom: 25px;
@@ -512,10 +488,6 @@
         .download-link:hover {
             background: #1b2035;
         }
-
-        /* =========================
-           ADMIN
-        ========================= */
 
         .admin-header {
             display: flex;
@@ -673,10 +645,6 @@
             display: none;
         }
 
-        /* =========================
-           RESPONSIVE
-        ========================= */
-
         @media (max-width: 850px) {
             .account-grid {
                 grid-template-columns: 1fr;
@@ -745,10 +713,6 @@
 {% set flaskLoggedIn = true if logged_in else false %}
 {% set isAdminPage = true if admin_page else false %}
 
-<!-- =========================
-     LOGIN / REGISTER
-========================= -->
-
 {% if not logged_in %}
 
 <div class="auth-screen">
@@ -808,7 +772,6 @@
 
     </div>
 
-
     <!-- REGISTER -->
     <div class="auth-box" id="registerScreen" style="display:none;">
 
@@ -829,7 +792,11 @@
             </div>
         {% endif %}
 
-        <div id="registerClientError" class="error-box" style="display:none;"></div>
+        <div
+            id="registerClientError"
+            class="error-box"
+            style="display:none;"
+        ></div>
 
         <form
             method="POST"
@@ -872,6 +839,7 @@
                 >
             </div>
 
+            <!-- Ô THỨ 2 -->
             <div class="input-group">
                 <label>Nhập lại mật khẩu</label>
                 <input
@@ -900,16 +868,10 @@
 
 </div>
 
-
 {% else %}
-
-<!-- =========================
-     MAIN APP
-========================= -->
 
 <div class="app">
 
-    <!-- NAVBAR -->
     <nav class="navbar">
 
         <div class="nav-logo">
@@ -934,11 +896,6 @@
 
     </nav>
 
-
-    <!-- =========================
-         ADMIN PAGE
-    ========================= -->
-
     {% if admin_page and current_user and current_user.role == "Admin" %}
 
     <main class="container">
@@ -955,9 +912,6 @@
             </div>
 
         </div>
-
-
-        <!-- STATS -->
 
         {% set total_users = users|length %}
         {% set pro_users = users|selectattr("plan", "equalto", "Pro")|list|length %}
@@ -988,9 +942,6 @@
 
         </div>
 
-
-        <!-- SEARCH / FILTER -->
-
         <div class="admin-tools">
 
             <input
@@ -1012,9 +963,6 @@
             </select>
 
         </div>
-
-
-        <!-- USER TABLE -->
 
         <div class="card table-card">
 
@@ -1103,10 +1051,14 @@
 
                         {% else %}
 
-                            <span class="badge"
-                                  style="background:rgba(239,68,68,.1);
-                                         border:1px solid rgba(239,68,68,.3);
-                                         color:#fca5a5;">
+                            <span
+                                class="badge"
+                                style="
+                                    background:rgba(239,68,68,.1);
+                                    border:1px solid rgba(239,68,68,.3);
+                                    color:#fca5a5;
+                                "
+                            >
                                 ● BANNED
                             </span>
 
@@ -1126,8 +1078,6 @@
 
                             <div class="action-group">
 
-                                <!-- CHANGE PLAN -->
-
                                 <form
                                     method="POST"
                                     action="{{ url_for('admin_change_plan', user_id=user.id) }}"
@@ -1135,7 +1085,11 @@
 
                                     {% if user.plan == "Free" %}
 
-                                        <input type="hidden" name="plan" value="Pro">
+                                        <input
+                                            type="hidden"
+                                            name="plan"
+                                            value="Pro"
+                                        >
 
                                         <button
                                             class="small-btn"
@@ -1146,7 +1100,11 @@
 
                                     {% else %}
 
-                                        <input type="hidden" name="plan" value="Free">
+                                        <input
+                                            type="hidden"
+                                            name="plan"
+                                            value="Free"
+                                        >
 
                                         <button
                                             class="small-btn"
@@ -1159,9 +1117,6 @@
 
                                 </form>
 
-
-                                <!-- BAN / UNBAN -->
-
                                 <form
                                     method="POST"
                                     action="{{ url_for('admin_change_status', user_id=user.id) }}"
@@ -1169,7 +1124,11 @@
 
                                     {% if user.status == "Active" %}
 
-                                        <input type="hidden" name="status" value="Banned">
+                                        <input
+                                            type="hidden"
+                                            name="status"
+                                            value="Banned"
+                                        >
 
                                         <button
                                             class="small-btn"
@@ -1180,7 +1139,11 @@
 
                                     {% else %}
 
-                                        <input type="hidden" name="status" value="Active">
+                                        <input
+                                            type="hidden"
+                                            name="status"
+                                            value="Active"
+                                        >
 
                                         <button
                                             class="small-btn"
@@ -1192,9 +1155,6 @@
                                     {% endif %}
 
                                 </form>
-
-
-                                <!-- DELETE -->
 
                                 <form
                                     method="POST"
@@ -1229,12 +1189,7 @@
 
     </main>
 
-
     {% else %}
-
-    <!-- =========================
-         USER DASHBOARD
-    ========================= -->
 
     <main class="container">
 
@@ -1252,11 +1207,6 @@
 
         </div>
 
-
-        <!-- =========================
-             VIDEO UPLOAD
-        ========================= -->
-
         <div class="card upload-card">
 
             <h2>🎬 REUP VIDEO</h2>
@@ -1265,7 +1215,10 @@
                 Chọn video của bạn để tải lên hệ thống.
             </p>
 
-            <form id="uploadForm" class="upload-form">
+            <form
+                id="uploadForm"
+                class="upload-form"
+            >
 
                 <input
                     class="video-input"
@@ -1286,9 +1239,16 @@
 
             </form>
 
-            <div id="uploadStatus" class="upload-status"></div>
+            <div
+                id="uploadStatus"
+                class="upload-status"
+            ></div>
 
-            <div id="downloadBox" class="download-box" style="display:none;">
+            <div
+                id="downloadBox"
+                class="download-box"
+                style="display:none;"
+            >
 
                 <a
                     id="downloadLink"
@@ -1302,9 +1262,6 @@
             </div>
 
         </div>
-
-
-        <!-- ACCOUNT -->
 
         <div class="account-grid">
 
@@ -1358,9 +1315,6 @@
 
             </div>
 
-
-            <!-- PLAN -->
-
             <div class="card plan-card">
 
                 <div class="plan-title">
@@ -1393,9 +1347,6 @@
 
         </div>
 
-
-        <!-- FEATURES -->
-
         <div class="section-title">
             🚀 Chức năng hệ thống
         </div>
@@ -1418,7 +1369,6 @@
 
             </div>
 
-
             <div class="feature-card">
 
                 <div class="feature-icon">
@@ -1435,7 +1385,6 @@
 
             </div>
 
-
             <div class="feature-card">
 
                 <div class="feature-icon">
@@ -1451,7 +1400,6 @@
                 </p>
 
             </div>
-
 
             {% if current_user.plan == "Pro" %}
 
@@ -1567,12 +1515,7 @@
 
 {% endif %}
 
-
 <script>
-
-    /* =========================
-       AUTH SCREEN
-    ========================= */
 
     function showLogin() {
 
@@ -1608,80 +1551,112 @@
        REGISTER PASSWORD CHECK
     ========================= */
 
-    const registerForm = document.getElementById("registerForm");
-    const registerPassword = document.getElementById("registerPassword");
-    const registerPassword2 = document.getElementById("registerPassword2");
-    const registerClientError = document.getElementById("registerClientError");
+    const registerForm =
+        document.getElementById("registerForm");
+
+    const registerPassword =
+        document.getElementById("registerPassword");
+
+    const registerPassword2 =
+        document.getElementById("registerPassword2");
+
+    const registerClientError =
+        document.getElementById("registerClientError");
+
 
     if (registerForm) {
 
-        registerForm.addEventListener("submit", function(event) {
+        registerForm.addEventListener(
+            "submit",
+            function(event) {
 
-            const password =
-                registerPassword
-                    ? registerPassword.value
-                    : "";
+                const password =
+                    registerPassword
+                        ? registerPassword.value
+                        : "";
 
-            const password2 =
-                registerPassword2
-                    ? registerPassword2.value
-                    : "";
+                const password2 =
+                    registerPassword2
+                        ? registerPassword2.value
+                        : "";
 
-            if (password.length < 6) {
 
-                event.preventDefault();
+                if (password.length < 6) {
 
-                if (registerClientError) {
-                    registerClientError.textContent =
-                        "Mật khẩu phải có ít nhất 6 ký tự.";
-                    registerClientError.style.display = "block";
+                    event.preventDefault();
+
+                    if (registerClientError) {
+
+                        registerClientError.textContent =
+                            "Mật khẩu phải có ít nhất 6 ký tự.";
+
+                        registerClientError.style.display =
+                            "block";
+                    }
+
+                    return;
                 }
 
-                return;
-            }
 
-            if (password !== password2) {
+                if (password !== password2) {
 
-                event.preventDefault();
+                    event.preventDefault();
 
-                if (registerClientError) {
-                    registerClientError.textContent =
-                        "Mật khẩu nhập lại không giống nhau.";
-                    registerClientError.style.display = "block";
+                    if (registerClientError) {
+
+                        registerClientError.textContent =
+                            "Mật khẩu nhập lại không giống nhau.";
+
+                        registerClientError.style.display =
+                            "block";
+                    }
+
+                    return;
                 }
 
-                return;
-            }
 
-            if (registerClientError) {
-                registerClientError.style.display = "none";
-                registerClientError.textContent = "";
-            }
+                if (registerClientError) {
 
-        });
+                    registerClientError.style.display =
+                        "none";
+
+                    registerClientError.textContent =
+                        "";
+                }
+
+            }
+        );
 
     }
 
 
     if (registerPassword2) {
 
-        registerPassword2.addEventListener("input", function() {
+        registerPassword2.addEventListener(
+            "input",
+            function() {
 
-            if (!registerClientError) {
-                return;
+                if (!registerClientError) {
+                    return;
+                }
+
+                if (
+                    registerPassword &&
+                    registerPassword.value &&
+                    registerPassword2.value &&
+                    registerPassword.value ===
+                    registerPassword2.value
+                ) {
+
+                    registerClientError.style.display =
+                        "none";
+
+                    registerClientError.textContent =
+                        "";
+                }
+
             }
-
-            if (
-                registerPassword &&
-                registerPassword.value &&
-                registerPassword2.value &&
-                registerPassword.value === registerPassword2.value
-            ) {
-                registerClientError.style.display = "none";
-                registerClientError.textContent = "";
-            }
-
-        });
+        );
 
     }
 
@@ -1690,13 +1665,20 @@
        ADMIN SEARCH / FILTER
     ========================= */
 
-    const searchInput = document.getElementById("userSearch");
-    const planFilter = document.getElementById("planFilter");
-    const statusFilter = document.getElementById("statusFilter");
+    const searchInput =
+        document.getElementById("userSearch");
+
+    const planFilter =
+        document.getElementById("planFilter");
+
+    const statusFilter =
+        document.getElementById("statusFilter");
+
 
     function filterUsers() {
 
-        const rows = document.querySelectorAll(".user-row");
+        const rows =
+            document.querySelectorAll(".user-row");
 
         if (!rows.length) {
             return;
@@ -1751,9 +1733,17 @@
                 matchPlan &&
                 matchStatus
             ) {
-                row.classList.remove("hidden-row");
+
+                row.classList.remove(
+                    "hidden-row"
+                );
+
             } else {
-                row.classList.add("hidden-row");
+
+                row.classList.add(
+                    "hidden-row"
+                );
+
             }
 
         });
@@ -1762,24 +1752,32 @@
 
 
     if (searchInput) {
+
         searchInput.addEventListener(
             "input",
             filterUsers
         );
+
     }
 
+
     if (planFilter) {
+
         planFilter.addEventListener(
             "change",
             filterUsers
         );
+
     }
 
+
     if (statusFilter) {
+
         statusFilter.addEventListener(
             "change",
             filterUsers
         );
+
     }
 
 
@@ -1787,120 +1785,189 @@
        VIDEO UPLOAD
     ========================= */
 
-    const uploadForm = document.getElementById("uploadForm");
-    const videoFile = document.getElementById("videoFile");
-    const uploadButton = document.getElementById("uploadButton");
-    const uploadStatus = document.getElementById("uploadStatus");
-    const downloadBox = document.getElementById("downloadBox");
-    const downloadLink = document.getElementById("downloadLink");
+    const uploadForm =
+        document.getElementById("uploadForm");
+
+    const videoFile =
+        document.getElementById("videoFile");
+
+    const uploadButton =
+        document.getElementById("uploadButton");
+
+    const uploadStatus =
+        document.getElementById("uploadStatus");
+
+    const downloadBox =
+        document.getElementById("downloadBox");
+
+    const downloadLink =
+        document.getElementById("downloadLink");
+
 
     if (uploadForm) {
 
-        uploadForm.addEventListener("submit", async function(event) {
+        uploadForm.addEventListener(
+            "submit",
+            async function(event) {
 
-            event.preventDefault();
+                event.preventDefault();
 
-            if (!videoFile.files.length) {
-                uploadStatus.textContent = "❌ Vui lòng chọn video.";
-                return;
-            }
 
-            const file = videoFile.files[0];
-            const allowedExtensions = [
-                "mp4",
-                "mov",
-                "avi",
-                "mkv",
-                "webm",
-                "m4v"
-            ];
+                if (!videoFile.files.length) {
 
-            const extension =
-                file.name
-                    .split(".")
-                    .pop()
-                    .toLowerCase();
+                    uploadStatus.textContent =
+                        "❌ Vui lòng chọn video.";
 
-            if (!allowedExtensions.includes(extension)) {
+                    return;
+                }
+
+
+                const file =
+                    videoFile.files[0];
+
+
+                const allowedExtensions = [
+                    "mp4",
+                    "mov",
+                    "avi",
+                    "mkv",
+                    "webm",
+                    "m4v"
+                ];
+
+
+                const extension =
+                    file.name
+                        .split(".")
+                        .pop()
+                        .toLowerCase();
+
+
+                if (
+                    !allowedExtensions.includes(
+                        extension
+                    )
+                ) {
+
+                    uploadStatus.textContent =
+                        "❌ Định dạng video không được hỗ trợ.";
+
+                    return;
+                }
+
+
+                const maxSize =
+                    500 * 1024 * 1024;
+
+
+                if (file.size > maxSize) {
+
+                    uploadStatus.textContent =
+                        "❌ Video vượt quá giới hạn 500 MB.";
+
+                    return;
+                }
+
+
+                const formData =
+                    new FormData();
+
+                formData.append(
+                    "video",
+                    file
+                );
+
+
+                uploadButton.disabled = true;
+
+                uploadButton.textContent =
+                    "⏳ ĐANG UPLOAD...";
+
                 uploadStatus.textContent =
-                    "❌ Định dạng video không được hỗ trợ.";
-                return;
-            }
+                    "⏳ Đang tải video lên máy chủ...";
 
-            const maxSize = 500 * 1024 * 1024;
+                downloadBox.style.display =
+                    "none";
 
-            if (file.size > maxSize) {
-                uploadStatus.textContent =
-                    "❌ Video vượt quá giới hạn 500 MB.";
-                return;
-            }
-
-            const formData = new FormData();
-            formData.append("video", file);
-
-            uploadButton.disabled = true;
-            uploadButton.textContent = "⏳ ĐANG UPLOAD...";
-            uploadStatus.textContent =
-                "⏳ Đang tải video lên máy chủ...";
-            downloadBox.style.display = "none";
-
-            try {
-
-                const response = await fetch("/upload", {
-                    method: "POST",
-                    body: formData
-                });
-
-                let data = {};
 
                 try {
-                    data = await response.json();
-                } catch (jsonError) {
-                    throw new Error(
-                        "Máy chủ trả về dữ liệu không hợp lệ."
-                    );
+
+                    const response =
+                        await fetch(
+                            "/upload",
+                            {
+                                method: "POST",
+                                body: formData
+                            }
+                        );
+
+
+                    let data = {};
+
+
+                    try {
+
+                        data =
+                            await response.json();
+
+                    } catch (jsonError) {
+
+                        throw new Error(
+                            "Máy chủ trả về dữ liệu không hợp lệ."
+                        );
+
+                    }
+
+
+                    if (!response.ok) {
+
+                        throw new Error(
+                            data.error ||
+                            "Upload thất bại."
+                        );
+
+                    }
+
+
+                    uploadStatus.textContent =
+                        "✅ Upload thành công!";
+
+
+                    if (data.download_url) {
+
+                        downloadLink.href =
+                            data.download_url;
+
+                        downloadBox.style.display =
+                            "block";
+                    }
+
+
+                } catch (error) {
+
+                    uploadStatus.textContent =
+                        "❌ " +
+                        (
+                            error.message ||
+                            "Có lỗi xảy ra."
+                        );
+
+
+                } finally {
+
+                    uploadButton.disabled =
+                        false;
+
+                    uploadButton.textContent =
+                        "📤 UPLOAD VIDEO";
+
                 }
-
-                if (!response.ok) {
-                    throw new Error(
-                        data.error || "Upload thất bại."
-                    );
-                }
-
-                uploadStatus.textContent =
-                    "✅ Upload thành công!";
-
-                if (data.download_url) {
-                    downloadLink.href =
-                        data.download_url;
-
-                    downloadBox.style.display =
-                        "block";
-                }
-
-            } catch (error) {
-
-                uploadStatus.textContent =
-                    "❌ " +
-                    (error.message ||
-                    "Có lỗi xảy ra.");
-
-            } finally {
-
-                uploadButton.disabled = false;
-                uploadButton.textContent =
-                    "📤 UPLOAD VIDEO";
 
             }
-
-        });
+        );
 
     }
 
-
-    /* =========================
-       DEFAULT
-    ========================= */
 
     document.addEventListener(
         "DOMContentLoaded",
