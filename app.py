@@ -6,16 +6,27 @@ from flask import (
     url_for,
     session,
     jsonify,
-    send_from_directory
+    send_from_directory,
+    make_response
 )
 
 from flask_sqlalchemy import SQLAlchemy
-from werkzeug.security import generate_password_hash, check_password_hash
+
+from werkzeug.security import (
+    generate_password_hash,
+    check_password_hash
+)
+
 from werkzeug.utils import secure_filename
 
 import os
 import uuid
-import subprocess
+import secrets
+import json
+import urllib.request
+import urllib.error
+
+from datetime import datetime, timedelta
 
 
 # =========================================================
@@ -66,24 +77,11 @@ app.config["SQLALCHEMY_DATABASE_URI"] = (
 
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-
-# =========================================================
-# STATIC / PWA
-# =========================================================
-
-STATIC_DIR = os.path.join(
-    BASE_DIR,
-    "static"
-)
-
-os.makedirs(
-    STATIC_DIR,
-    exist_ok=True
-)
+db = SQLAlchemy(app)
 
 
 # =========================================================
-# FILE UPLOAD / OUTPUT / FFMPEG
+# UPLOAD
 # =========================================================
 
 UPLOAD_DIR = os.path.join(
@@ -91,27 +89,10 @@ UPLOAD_DIR = os.path.join(
     "uploads"
 )
 
-OUTPUT_DIR = os.path.join(
-    BASE_DIR,
-    "outputs"
-)
-
 os.makedirs(
     UPLOAD_DIR,
     exist_ok=True
 )
-
-os.makedirs(
-    OUTPUT_DIR,
-    exist_ok=True
-)
-
-
-# 500 MB
-app.config["MAX_CONTENT_LENGTH"] = (
-    500 * 1024 * 1024
-)
-
 
 ALLOWED_VIDEO_EXTENSIONS = {
     "mp4",
@@ -122,62 +103,332 @@ ALLOWED_VIDEO_EXTENSIONS = {
     "m4v"
 }
 
-
-PROJECT_FFMPEG = os.path.join(
-    BASE_DIR,
-    "ffmpeg",
-    "bin",
-    "ffmpeg.exe"
+MAX_UPLOAD_SIZE = (
+    500 * 1024 * 1024
 )
 
-DOWNLOADS_FFMPEG = os.path.join(
-    os.path.expanduser("~"),
-    "Downloads",
-    "ffmpeg",
-    "bin",
-    "ffmpeg.exe"
+app.config["MAX_CONTENT_LENGTH"] = (
+    MAX_UPLOAD_SIZE
 )
-
-
-FFMPEG_PATH = os.environ.get(
-    "FFMPEG_PATH",
-    ""
-).strip()
-
-
-if not FFMPEG_PATH:
-
-    if os.path.isfile(PROJECT_FFMPEG):
-
-        FFMPEG_PATH = PROJECT_FFMPEG
-
-    elif os.path.isfile(DOWNLOADS_FFMPEG):
-
-        FFMPEG_PATH = DOWNLOADS_FFMPEG
-
-    else:
-
-        FFMPEG_PATH = "ffmpeg"
 
 
 def allowed_video(filename):
 
-    return (
-        "." in filename
-        and
-        filename.rsplit(
-            ".",
-            1
-        )[1].lower()
-        in ALLOWED_VIDEO_EXTENSIONS
+    if not filename:
+        return False
+
+    if "." not in filename:
+        return False
+
+    extension = (
+        filename
+        .rsplit(".", 1)[1]
+        .lower()
+    )
+
+    return extension in ALLOWED_VIDEO_EXTENSIONS
+
+
+# =========================================================
+# RESEND
+# =========================================================
+
+RESEND_API_KEY = os.environ.get(
+    "RESEND_API_KEY",
+    ""
+).strip()
+
+RESEND_FROM = os.environ.get(
+    "RESEND_FROM",
+    "onboarding@resend.dev"
+).strip()
+
+RESEND_API_URL = (
+    "https://api.resend.com/emails"
+)
+
+
+def send_reset_email(
+    receiver_email,
+    reset_code
+):
+    """
+    Gửi email qua Resend REST API.
+    Không dùng SMTP.
+    """
+
+    if not RESEND_API_KEY:
+
+        raise RuntimeError(
+            "RESEND_API_KEY chưa được cấu hình trên Render."
+        )
+
+    if not RESEND_FROM:
+
+        raise RuntimeError(
+            "RESEND_FROM chưa được cấu hình trên Render."
+        )
+
+
+    html = f"""
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+</head>
+
+<body
+    style="
+        margin:0;
+        padding:0;
+        background:#070912;
+        color:#ffffff;
+        font-family:Arial,Helvetica,sans-serif;
+    "
+>
+
+<div
+    style="
+        max-width:520px;
+        margin:30px auto;
+        padding:30px;
+        background:#0f1223;
+        border:1px solid #292e45;
+        border-radius:18px;
+    "
+>
+
+    <h1
+        style="
+            text-align:center;
+            color:#a78bfa;
+            margin-bottom:10px;
+        "
+    >
+        REUP NVL VIP
+    </h1>
+
+
+    <p
+        style="
+            color:#b7bdd0;
+            font-size:15px;
+        "
+    >
+        Bạn vừa yêu cầu đặt lại mật khẩu.
+    </p>
+
+
+    <p
+        style="
+            color:#b7bdd0;
+            font-size:15px;
+        "
+    >
+        Mã xác nhận của bạn là:
+    </p>
+
+
+    <div
+        style="
+            text-align:center;
+            margin:25px 0;
+        "
+    >
+
+        <span
+            style="
+                display:inline-block;
+                padding:16px 28px;
+                background:#171b31;
+                border:1px solid #8b5cf6;
+                border-radius:14px;
+                color:#d8b4fe;
+                font-size:32px;
+                font-weight:900;
+                letter-spacing:8px;
+            "
+        >
+            {reset_code}
+        </span>
+
+    </div>
+
+
+    <p
+        style="
+            color:#858ba0;
+            font-size:14px;
+        "
+    >
+        Mã có hiệu lực trong 10 phút.
+    </p>
+
+
+    <p
+        style="
+            color:#858ba0;
+            font-size:14px;
+        "
+    >
+        Nếu bạn không yêu cầu đặt lại mật khẩu,
+        hãy bỏ qua email này.
+    </p>
+
+
+    <hr
+        style="
+            border:0;
+            border-top:1px solid #242941;
+            margin:25px 0;
+        "
+    >
+
+
+    <p
+        style="
+            color:#646b82;
+            font-size:12px;
+            text-align:center;
+        "
+    >
+        REUP NVL VIP
+    </p>
+
+</div>
+
+</body>
+</html>
+"""
+
+
+    payload = {
+        "from": RESEND_FROM,
+        "to": [receiver_email],
+        "subject": "REUP NVL VIP - Mã đặt lại mật khẩu",
+        "html": html
+    }
+
+
+    payload_bytes = json.dumps(
+        payload
+    ).encode("utf-8")
+
+
+    request_object = urllib.request.Request(
+
+        RESEND_API_URL,
+
+        data=payload_bytes,
+
+        headers={
+            "Authorization": (
+                "Bearer "
+                + RESEND_API_KEY
+            ),
+            "Content-Type": (
+                "application/json"
+            ),
+            "Accept": (
+                "application/json"
+            )
+        },
+
+        method="POST"
     )
 
 
-# =========================================================
-# DATABASE OBJECT
-# =========================================================
+    try:
 
-db = SQLAlchemy(app)
+        with urllib.request.urlopen(
+            request_object,
+            timeout=30
+        ) as response:
+
+            response_body = (
+                response
+                .read()
+                .decode("utf-8")
+            )
+
+            try:
+
+                result = json.loads(
+                    response_body
+                )
+
+            except Exception:
+
+                result = {
+                    "raw": response_body
+                }
+
+
+            print(
+                "[RESEND] OK:",
+                result
+            )
+
+
+            return result
+
+
+    except urllib.error.HTTPError as error:
+
+        error_body = ""
+
+        try:
+
+            error_body = (
+                error
+                .read()
+                .decode("utf-8")
+            )
+
+        except Exception:
+            pass
+
+
+        print(
+            "[RESEND] HTTP ERROR:",
+            error.code,
+            error_body
+        )
+
+
+        try:
+
+            parsed_error = json.loads(
+                error_body
+            )
+
+        except Exception:
+
+            parsed_error = {
+                "status": error.code,
+                "message": error_body
+            }
+
+
+        raise RuntimeError(
+            "Resend API lỗi: "
+            + json.dumps(
+                parsed_error,
+                ensure_ascii=False
+            )
+        )
+
+
+    except urllib.error.URLError as error:
+
+        print(
+            "[RESEND] URL ERROR:",
+            error
+        )
+
+        raise RuntimeError(
+            "Không kết nối được Resend API."
+        )
 
 
 # =========================================================
@@ -228,6 +479,16 @@ class User(db.Model):
         default="Active"
     )
 
+    reset_code_hash = db.Column(
+        db.String(255),
+        nullable=True
+    )
+
+    reset_code_expires = db.Column(
+        db.DateTime,
+        nullable=True
+    )
+
 
 # =========================================================
 # DATABASE SETUP / MIGRATION
@@ -237,21 +498,19 @@ def setup_database():
 
     db.create_all()
 
+
     inspector = db.inspect(
         db.engine
     )
 
-    columns = [
+
+    columns = {
         column["name"]
         for column in inspector.get_columns(
             "user"
         )
-    ]
+    }
 
-
-    # -----------------------------------------------------
-    # ROLE
-    # -----------------------------------------------------
 
     if "role" not in columns:
 
@@ -266,10 +525,6 @@ def setup_database():
             connection.commit()
 
 
-    # -----------------------------------------------------
-    # STATUS
-    # -----------------------------------------------------
-
     if "status" not in columns:
 
         with db.engine.connect() as connection:
@@ -283,9 +538,29 @@ def setup_database():
             connection.commit()
 
 
-    # -----------------------------------------------------
-    # NORMALIZE OLD DATA
-    # -----------------------------------------------------
+    if "reset_code_hash" not in columns:
+
+        with db.engine.connect() as connection:
+
+            connection.exec_driver_sql(
+                "ALTER TABLE user "
+                "ADD COLUMN reset_code_hash VARCHAR(255)"
+            )
+
+            connection.commit()
+
+
+    if "reset_code_expires" not in columns:
+
+        with db.engine.connect() as connection:
+
+            connection.exec_driver_sql(
+                "ALTER TABLE user "
+                "ADD COLUMN reset_code_expires DATETIME"
+            )
+
+            connection.commit()
+
 
     users = User.query.all()
 
@@ -297,24 +572,6 @@ def setup_database():
         if not user.role:
 
             user.role = "User"
-
-            changed = True
-
-
-        if not user.status:
-
-            user.status = "Active"
-
-            changed = True
-
-
-        if user.plan not in [
-            "Free",
-            "Pro"
-        ]:
-
-            user.plan = "Free"
-
             changed = True
 
 
@@ -324,7 +581,12 @@ def setup_database():
         ]:
 
             user.role = "User"
+            changed = True
 
+
+        if not user.status:
+
+            user.status = "Active"
             changed = True
 
 
@@ -334,48 +596,16 @@ def setup_database():
         ]:
 
             user.status = "Active"
-
             changed = True
 
 
-    # -----------------------------------------------------
-    # AUTO ADMIN FROM ENV
-    #
-    # Không tạo Admin mới khi đăng ký.
-    # Chỉ tự nâng quyền tài khoản đã tồn tại.
-    # -----------------------------------------------------
+        if user.plan not in [
+            "Free",
+            "Pro"
+        ]:
 
-    admin_username = os.environ.get(
-        "ADMIN_USERNAME",
-        "admin"
-    ).strip()
-
-
-    if admin_username:
-
-        admin_user = User.query.filter(
-            db.func.lower(
-                User.username
-            )
-            ==
-            admin_username.lower()
-        ).first()
-
-
-        if admin_user:
-
-            if admin_user.role != "Admin":
-
-                admin_user.role = "Admin"
-
-                changed = True
-
-
-            if admin_user.status != "Active":
-
-                admin_user.status = "Active"
-
-                changed = True
+            user.plan = "Free"
+            changed = True
 
 
     if changed:
@@ -384,12 +614,86 @@ def setup_database():
 
 
 # =========================================================
-# INIT DATABASE
+# AUTO ADMIN
+# =========================================================
+
+def auto_set_admin():
+
+    admin_username = os.environ.get(
+        "ADMIN_USERNAME",
+        ""
+    ).strip()
+
+
+    if not admin_username:
+
+        return
+
+
+    try:
+
+        user = User.query.filter(
+            db.func.lower(User.username)
+            == admin_username.lower()
+        ).first()
+
+
+        if user is None:
+
+            print(
+                "[AUTO ADMIN] Chưa có tài khoản:",
+                admin_username
+            )
+
+            return
+
+
+        changed = False
+
+
+        if user.role != "Admin":
+
+            user.role = "Admin"
+            changed = True
+
+
+        if user.status != "Active":
+
+            user.status = "Active"
+            changed = True
+
+
+        if changed:
+
+            db.session.commit()
+
+
+        print(
+            "[AUTO ADMIN]",
+            user.username,
+            "=> Admin"
+        )
+
+
+    except Exception as e:
+
+        db.session.rollback()
+
+        print(
+            "[AUTO ADMIN] LOI:",
+            e
+        )
+
+
+# =========================================================
+# INIT
 # =========================================================
 
 with app.app_context():
 
     setup_database()
+
+    auto_set_admin()
 
 
 # =========================================================
@@ -435,12 +739,8 @@ def require_admin():
 
     if user is None:
 
-        return None, (
-            jsonify({
-                "success": False,
-                "error": "Bạn chưa đăng nhập."
-            }),
-            401
+        return None, redirect(
+            url_for("index")
         )
 
 
@@ -448,23 +748,15 @@ def require_admin():
 
         session.clear()
 
-        return None, (
-            jsonify({
-                "success": False,
-                "error": "Tài khoản của bạn đang bị khóa."
-            }),
-            403
+        return None, redirect(
+            url_for("index")
         )
 
 
     if user.role != "Admin":
 
-        return None, (
-            jsonify({
-                "success": False,
-                "error": "Bạn không có quyền Admin."
-            }),
-            403
+        return None, redirect(
+            url_for("index")
         )
 
 
@@ -483,8 +775,7 @@ def index():
 
     if (
         current_user
-        and
-        current_user.status != "Active"
+        and current_user.status != "Active"
     ):
 
         session.clear()
@@ -493,6 +784,7 @@ def index():
 
 
     return render_template(
+
         "index.html",
 
         logged_in=(
@@ -530,80 +822,6 @@ def index():
 
 
 # =========================================================
-# PWA - MANIFEST
-# =========================================================
-
-@app.route(
-    "/manifest.json"
-)
-def manifest():
-
-    manifest_path = os.path.join(
-        STATIC_DIR,
-        "manifest.json"
-    )
-
-
-    if not os.path.isfile(
-        manifest_path
-    ):
-
-        return jsonify({
-            "name": "REUP NVL VIP",
-            "short_name": "REUP NVL",
-            "start_url": "/",
-            "display": "standalone",
-            "background_color": "#070912",
-            "theme_color": "#070912",
-            "icons": []
-        })
-
-
-    return send_from_directory(
-        STATIC_DIR,
-        "manifest.json",
-        mimetype="application/manifest+json"
-    )
-
-
-# =========================================================
-# PWA - SERVICE WORKER
-# =========================================================
-
-@app.route(
-    "/sw.js"
-)
-def service_worker():
-
-    sw_path = os.path.join(
-        STATIC_DIR,
-        "sw.js"
-    )
-
-
-    if not os.path.isfile(
-        sw_path
-    ):
-
-        return (
-            "self.addEventListener('install', "
-            "event => self.skipWaiting());",
-            200,
-            {
-                "Content-Type":
-                    "application/javascript"
-            }
-        )
-
-
-    return send_from_directory(
-        STATIC_DIR,
-        "sw.js",
-        mimetype="application/javascript"
-    )
-
-
-# =========================================================
 # REGISTER
 # =========================================================
 
@@ -618,25 +836,24 @@ def register():
         ""
     ).strip()
 
+
     email = request.form.get(
         "email",
         ""
     ).strip().lower()
+
 
     password = request.form.get(
         "password",
         ""
     )
 
+
     password2 = request.form.get(
         "password2",
         ""
     )
 
-
-    # -----------------------------------------------------
-    # VALIDATION
-    # -----------------------------------------------------
 
     if not username:
 
@@ -706,16 +923,9 @@ def register():
         )
 
 
-    # -----------------------------------------------------
-    # CHECK USERNAME
-    # -----------------------------------------------------
-
     existing_username = User.query.filter(
-        db.func.lower(
-            User.username
-        )
-        ==
-        username.lower()
+        db.func.lower(User.username)
+        == username.lower()
     ).first()
 
 
@@ -735,16 +945,9 @@ def register():
         )
 
 
-    # -----------------------------------------------------
-    # CHECK EMAIL
-    # -----------------------------------------------------
-
     existing_email = User.query.filter(
-        db.func.lower(
-            User.email
-        )
-        ==
-        email.lower()
+        db.func.lower(User.email)
+        == email.lower()
     ).first()
 
 
@@ -764,9 +967,23 @@ def register():
         )
 
 
-    # -----------------------------------------------------
-    # CREATE USER
-    # -----------------------------------------------------
+    admin_username = os.environ.get(
+        "ADMIN_USERNAME",
+        ""
+    ).strip().lower()
+
+
+    if (
+        admin_username
+        and username.lower() == admin_username
+    ):
+
+        role = "Admin"
+
+    else:
+
+        role = "User"
+
 
     new_user = User(
 
@@ -780,9 +997,13 @@ def register():
 
         plan="Free",
 
-        role="User",
+        role=role,
 
-        status="Active"
+        status="Active",
+
+        reset_code_hash=None,
+
+        reset_code_expires=None
     )
 
 
@@ -793,19 +1014,42 @@ def register():
     db.session.commit()
 
 
-    return render_template(
-        "index.html",
-        logged_in=False,
-        username=None,
-        plan=None,
-        role=None,
-        current_user=None,
-        admin_page=False,
-        users=[],
-        error=None,
-        success=(
-            "Đăng ký thành công! Hãy đăng nhập."
+    if role == "Admin":
+
+        success_message = (
+            "Đăng ký thành công! "
+            "Tài khoản đã được cấp quyền Admin."
         )
+
+    else:
+
+        success_message = (
+            "Đăng ký thành công! "
+            "Hãy đăng nhập."
+        )
+
+
+    return render_template(
+
+        "index.html",
+
+        logged_in=False,
+
+        username=None,
+
+        plan=None,
+
+        role=None,
+
+        current_user=None,
+
+        admin_page=False,
+
+        users=[],
+
+        error=None,
+
+        success=success_message
     )
 
 
@@ -824,17 +1068,14 @@ def login():
         ""
     ).strip()
 
+
     password = request.form.get(
         "password",
         ""
     )
 
 
-    if (
-        not login_value
-        or
-        not password
-    ):
+    if not login_value or not password:
 
         return render_template(
             "index.html",
@@ -852,24 +1093,22 @@ def login():
         )
 
 
-    # -----------------------------------------------------
-    # SEARCH USER
-    # -----------------------------------------------------
-
     user = User.query.filter(
+
         db.or_(
+
             db.func.lower(
                 User.username
             )
-            ==
-            login_value.lower(),
+            == login_value.lower(),
 
             db.func.lower(
                 User.email
             )
-            ==
-            login_value.lower()
+            == login_value.lower()
+
         )
+
     ).first()
 
 
@@ -890,10 +1129,6 @@ def login():
             success=None
         )
 
-
-    # -----------------------------------------------------
-    # PASSWORD
-    # -----------------------------------------------------
 
     if not check_password_hash(
         user.password_hash,
@@ -916,10 +1151,6 @@ def login():
         )
 
 
-    # -----------------------------------------------------
-    # BANNED
-    # -----------------------------------------------------
-
     if user.status != "Active":
 
         return render_template(
@@ -937,10 +1168,6 @@ def login():
             success=None
         )
 
-
-    # -----------------------------------------------------
-    # SESSION
-    # -----------------------------------------------------
 
     session.clear()
 
@@ -970,38 +1197,397 @@ def logout():
 
 
 # =========================================================
-# ADMIN PANEL
+# CHANGE PASSWORD
 # =========================================================
 
 @app.route(
-    "/admin"
+    "/change-password",
+    methods=["POST"]
 )
-def admin():
+def change_password():
 
     current_user = get_current_user()
 
 
     if current_user is None:
 
-        return redirect(
-            url_for("index")
+        return jsonify({
+            "success": False,
+            "error": "Bạn chưa đăng nhập."
+        }), 401
+
+
+    current_password = request.form.get(
+        "current_password",
+        ""
+    )
+
+
+    new_password = request.form.get(
+        "new_password",
+        ""
+    )
+
+
+    new_password2 = request.form.get(
+        "new_password2",
+        ""
+    )
+
+
+    if not current_password:
+
+        return jsonify({
+            "success": False,
+            "error": (
+                "Vui lòng nhập mật khẩu hiện tại."
+            )
+        }), 400
+
+
+    if len(new_password) < 6:
+
+        return jsonify({
+            "success": False,
+            "error": (
+                "Mật khẩu mới phải có ít nhất 6 ký tự."
+            )
+        }), 400
+
+
+    if new_password != new_password2:
+
+        return jsonify({
+            "success": False,
+            "error": (
+                "Mật khẩu mới nhập lại không giống nhau."
+            )
+        }), 400
+
+
+    if not check_password_hash(
+        current_user.password_hash,
+        current_password
+    ):
+
+        return jsonify({
+            "success": False,
+            "error": (
+                "Mật khẩu hiện tại không đúng."
+            )
+        }), 400
+
+
+    current_user.password_hash = (
+        generate_password_hash(
+            new_password
+        )
+    )
+
+
+    current_user.reset_code_hash = None
+
+    current_user.reset_code_expires = None
+
+
+    db.session.commit()
+
+
+    return jsonify({
+        "success": True,
+        "message": (
+            "Đổi mật khẩu thành công."
+        )
+    })
+
+
+# =========================================================
+# FORGOT PASSWORD
+# =========================================================
+
+@app.route(
+    "/forgot-password",
+    methods=["POST"]
+)
+def forgot_password():
+
+    email = request.form.get(
+        "email",
+        ""
+    ).strip().lower()
+
+
+    if not email:
+
+        return jsonify({
+            "success": False,
+            "error": "Vui lòng nhập email."
+        }), 400
+
+
+    user = User.query.filter(
+        db.func.lower(User.email)
+        == email
+    ).first()
+
+
+    if user is None:
+
+        return jsonify({
+            "success": True,
+            "message": (
+                "Nếu email tồn tại trong hệ thống, "
+                "mã xác nhận sẽ được gửi về email đó."
+            )
+        })
+
+
+    reset_code = str(
+        secrets.randbelow(900000)
+        + 100000
+    )
+
+
+    user.reset_code_hash = (
+        generate_password_hash(
+            reset_code
+        )
+    )
+
+
+    user.reset_code_expires = (
+        datetime.utcnow()
+        + timedelta(minutes=10)
+    )
+
+
+    db.session.commit()
+
+
+    try:
+
+        send_reset_email(
+            user.email,
+            reset_code
         )
 
 
-    if current_user.status != "Active":
+    except Exception as e:
 
-        session.clear()
-
-        return redirect(
-            url_for("index")
+        print(
+            "[RESET EMAIL] LOI:",
+            e
         )
 
 
-    if current_user.role != "Admin":
+        user.reset_code_hash = None
 
-        return redirect(
-            url_for("index")
+        user.reset_code_expires = None
+
+
+        db.session.commit()
+
+
+        return jsonify({
+            "success": False,
+            "error": (
+                "Không gửi được email. "
+                "Kiểm tra Resend trên Render."
+            )
+        }), 500
+
+
+    return jsonify({
+        "success": True,
+        "message": (
+            "Mã xác nhận đã được gửi về email."
         )
+    })
+
+
+# =========================================================
+# RESET PASSWORD
+# =========================================================
+
+@app.route(
+    "/reset-password",
+    methods=["POST"]
+)
+def reset_password():
+
+    email = request.form.get(
+        "email",
+        ""
+    ).strip().lower()
+
+
+    code = request.form.get(
+        "code",
+        ""
+    ).strip()
+
+
+    new_password = request.form.get(
+        "new_password",
+        ""
+    )
+
+
+    new_password2 = request.form.get(
+        "new_password2",
+        ""
+    )
+
+
+    if not email:
+
+        return jsonify({
+            "success": False,
+            "error": "Vui lòng nhập email."
+        }), 400
+
+
+    if (
+        len(code) != 6
+        or not code.isdigit()
+    ):
+
+        return jsonify({
+            "success": False,
+            "error": (
+                "Mã xác nhận phải gồm 6 số."
+            )
+        }), 400
+
+
+    if len(new_password) < 6:
+
+        return jsonify({
+            "success": False,
+            "error": (
+                "Mật khẩu mới phải có ít nhất 6 ký tự."
+            )
+        }), 400
+
+
+    if new_password != new_password2:
+
+        return jsonify({
+            "success": False,
+            "error": (
+                "Hai mật khẩu mới không giống nhau."
+            )
+        }), 400
+
+
+    user = User.query.filter(
+        db.func.lower(User.email)
+        == email
+    ).first()
+
+
+    if user is None:
+
+        return jsonify({
+            "success": False,
+            "error": (
+                "Mã xác nhận không hợp lệ."
+            )
+        }), 400
+
+
+    if not user.reset_code_hash:
+
+        return jsonify({
+            "success": False,
+            "error": (
+                "Mã không tồn tại hoặc đã hết hạn."
+            )
+        }), 400
+
+
+    if not user.reset_code_expires:
+
+        return jsonify({
+            "success": False,
+            "error": (
+                "Mã xác nhận đã hết hạn."
+            )
+        }), 400
+
+
+    if (
+        datetime.utcnow()
+        > user.reset_code_expires
+    ):
+
+        user.reset_code_hash = None
+
+        user.reset_code_expires = None
+
+        db.session.commit()
+
+
+        return jsonify({
+            "success": False,
+            "error": (
+                "Mã đã hết hạn. "
+                "Hãy lấy mã mới."
+            )
+        }), 400
+
+
+    if not check_password_hash(
+        user.reset_code_hash,
+        code
+    ):
+
+        return jsonify({
+            "success": False,
+            "error": (
+                "Mã xác nhận không đúng."
+            )
+        }), 400
+
+
+    user.password_hash = (
+        generate_password_hash(
+            new_password
+        )
+    )
+
+
+    user.reset_code_hash = None
+
+    user.reset_code_expires = None
+
+
+    db.session.commit()
+
+
+    return jsonify({
+        "success": True,
+        "message": (
+            "Đặt lại mật khẩu thành công."
+        )
+    })
+
+
+# =========================================================
+# ADMIN
+# =========================================================
+
+@app.route("/admin")
+def admin():
+
+    current_user, error_response = (
+        require_admin()
+    )
+
+
+    if error_response:
+
+        return error_response
 
 
     users = User.query.order_by(
@@ -1010,6 +1596,7 @@ def admin():
 
 
     return render_template(
+
         "index.html",
 
         logged_in=True,
@@ -1033,7 +1620,7 @@ def admin():
 
 
 # =========================================================
-# ADMIN - CHANGE PLAN
+# ADMIN PLAN
 # =========================================================
 
 @app.route(
@@ -1042,33 +1629,16 @@ def admin():
 )
 def admin_change_plan(user_id):
 
-    current_user = get_current_user()
+    current_user, error_response = (
+        require_admin()
+    )
 
 
-    if current_user is None:
+    if error_response:
 
-        return redirect(
-            url_for("index")
-        )
+        return error_response
 
 
-    if current_user.status != "Active":
-
-        session.clear()
-
-        return redirect(
-            url_for("index")
-        )
-
-
-    if current_user.role != "Admin":
-
-        return redirect(
-            url_for("index")
-        )
-
-
-    # Không tự sửa chính mình
     if user_id == current_user.id:
 
         return redirect(
@@ -1083,14 +1653,6 @@ def admin_change_plan(user_id):
 
 
     if user is None:
-
-        return redirect(
-            url_for("admin")
-        )
-
-
-    # Không cho thao tác Admin khác
-    if user.role == "Admin":
 
         return redirect(
             url_for("admin")
@@ -1124,7 +1686,7 @@ def admin_change_plan(user_id):
 
 
 # =========================================================
-# ADMIN - CHANGE STATUS
+# ADMIN STATUS
 # =========================================================
 
 @app.route(
@@ -1133,33 +1695,16 @@ def admin_change_plan(user_id):
 )
 def admin_change_status(user_id):
 
-    current_user = get_current_user()
+    current_user, error_response = (
+        require_admin()
+    )
 
 
-    if current_user is None:
+    if error_response:
 
-        return redirect(
-            url_for("index")
-        )
+        return error_response
 
 
-    if current_user.status != "Active":
-
-        session.clear()
-
-        return redirect(
-            url_for("index")
-        )
-
-
-    if current_user.role != "Admin":
-
-        return redirect(
-            url_for("index")
-        )
-
-
-    # Không tự ban mình
     if user_id == current_user.id:
 
         return redirect(
@@ -1174,14 +1719,6 @@ def admin_change_status(user_id):
 
 
     if user is None:
-
-        return redirect(
-            url_for("admin")
-        )
-
-
-    # Không ban Admin khác
-    if user.role == "Admin":
 
         return redirect(
             url_for("admin")
@@ -1215,138 +1752,7 @@ def admin_change_status(user_id):
 
 
 # =========================================================
-# ADMIN - RESET PASSWORD
-# =========================================================
-
-@app.route(
-    "/admin/user/<int:user_id>/reset-password",
-    methods=["POST"]
-)
-def admin_reset_password(user_id):
-
-    current_user = get_current_user()
-
-
-    if current_user is None:
-
-        return jsonify({
-            "success": False,
-            "error": "Bạn chưa đăng nhập."
-        }), 401
-
-
-    if current_user.status != "Active":
-
-        session.clear()
-
-        return jsonify({
-            "success": False,
-            "error": "Tài khoản Admin đang bị khóa."
-        }), 403
-
-
-    if current_user.role != "Admin":
-
-        return jsonify({
-            "success": False,
-            "error": "Bạn không có quyền Admin."
-        }), 403
-
-
-    # Không reset chính mình
-    if user_id == current_user.id:
-
-        return jsonify({
-            "success": False,
-            "error": (
-                "Không thể dùng chức năng này "
-                "để đặt lại mật khẩu của chính Admin."
-            )
-        }), 400
-
-
-    user = db.session.get(
-        User,
-        user_id
-    )
-
-
-    if user is None:
-
-        return jsonify({
-            "success": False,
-            "error": "Không tìm thấy tài khoản."
-        }), 404
-
-
-    # Không reset Admin khác
-    if user.role == "Admin":
-
-        return jsonify({
-            "success": False,
-            "error": (
-                "Không thể đặt lại mật khẩu "
-                "của tài khoản Admin khác."
-            )
-        }), 403
-
-
-    new_password = request.form.get(
-        "new_password",
-        ""
-    )
-
-
-    confirm_password = request.form.get(
-        "confirm_password",
-        ""
-    )
-
-
-    if len(new_password) < 6:
-
-        return jsonify({
-            "success": False,
-            "error": (
-                "Mật khẩu phải có ít nhất 6 ký tự."
-            )
-        }), 400
-
-
-    if new_password != confirm_password:
-
-        return jsonify({
-            "success": False,
-            "error": (
-                "Hai mật khẩu không giống nhau."
-            )
-        }), 400
-
-
-    # -----------------------------------------------------
-    # HASH + SAVE
-    # -----------------------------------------------------
-
-    user.password_hash = (
-        generate_password_hash(
-            new_password
-        )
-    )
-
-
-    db.session.commit()
-
-
-    return jsonify({
-        "success": True,
-        "message": (
-            "Đã đặt lại mật khẩu thành công."
-        )
-    })
-
-
-# =========================================================
-# ADMIN - DELETE USER
+# ADMIN DELETE
 # =========================================================
 
 @app.route(
@@ -1355,33 +1761,16 @@ def admin_reset_password(user_id):
 )
 def admin_delete_user(user_id):
 
-    current_user = get_current_user()
+    current_user, error_response = (
+        require_admin()
+    )
 
 
-    if current_user is None:
+    if error_response:
 
-        return redirect(
-            url_for("index")
-        )
+        return error_response
 
 
-    if current_user.status != "Active":
-
-        session.clear()
-
-        return redirect(
-            url_for("index")
-        )
-
-
-    if current_user.role != "Admin":
-
-        return redirect(
-            url_for("index")
-        )
-
-
-    # Không tự xóa mình
     if user_id == current_user.id:
 
         return redirect(
@@ -1402,7 +1791,6 @@ def admin_delete_user(user_id):
         )
 
 
-    # Không xóa Admin khác
     if user.role == "Admin":
 
         return redirect(
@@ -1423,118 +1811,54 @@ def admin_delete_user(user_id):
 
 
 # =========================================================
-# CHANGE OWN PASSWORD
+# DATABASE CHECK
 # =========================================================
 
 @app.route(
-    "/change-password",
-    methods=["POST"]
+    "/kiem-tra-db"
 )
-def change_password():
+def check_db():
 
-    current_user = get_current_user()
-
-
-    if current_user is None:
-
-        return jsonify({
-            "success": False,
-            "error": "Bạn chưa đăng nhập."
-        }), 401
+    users = User.query.order_by(
+        User.id.asc()
+    ).all()
 
 
-    if current_user.status != "Active":
-
-        session.clear()
-
-        return jsonify({
-            "success": False,
-            "error": "Tài khoản của bạn đang bị khóa."
-        }), 403
+    result = []
 
 
-    data = request.get_json(
-        silent=True
-    ) or {}
+    for user in users:
+
+        result.append({
+
+            "id":
+                user.id,
+
+            "username":
+                user.username,
+
+            "email":
+                user.email,
+
+            "plan":
+                user.plan,
+
+            "role":
+                user.role,
+
+            "status":
+                user.status
+
+        })
 
 
-    current_password = str(
-        data.get(
-            "current_password",
-            ""
-        )
+    return jsonify(
+        result
     )
-
-
-    new_password = str(
-        data.get(
-            "new_password",
-            ""
-        )
-    )
-
-
-    if not current_password:
-
-        return jsonify({
-            "success": False,
-            "error": (
-                "Vui lòng nhập mật khẩu hiện tại."
-            )
-        }), 400
-
-
-    if len(new_password) < 6:
-
-        return jsonify({
-            "success": False,
-            "error": (
-                "Mật khẩu mới phải có ít nhất 6 ký tự."
-            )
-        }), 400
-
-
-    # -----------------------------------------------------
-    # CHECK CURRENT PASSWORD
-    # -----------------------------------------------------
-
-    if not check_password_hash(
-        current_user.password_hash,
-        current_password
-    ):
-
-        return jsonify({
-            "success": False,
-            "error": (
-                "Mật khẩu hiện tại không đúng."
-            )
-        }), 400
-
-
-    # -----------------------------------------------------
-    # SAVE NEW PASSWORD
-    # -----------------------------------------------------
-
-    current_user.password_hash = (
-        generate_password_hash(
-            new_password
-        )
-    )
-
-
-    db.session.commit()
-
-
-    return jsonify({
-        "success": True,
-        "message": (
-            "Đổi mật khẩu thành công."
-        )
-    })
 
 
 # =========================================================
-# VIDEO UPLOAD + FFMPEG
+# UPLOAD
 # =========================================================
 
 @app.route(
@@ -1550,13 +1874,16 @@ def upload_video():
 
         return jsonify({
             "success": False,
-            "error": "Bạn chưa đăng nhập."
+            "error": (
+                "Bạn chưa đăng nhập."
+            )
         }), 401
 
 
     if current_user.status != "Active":
 
         session.clear()
+
 
         return jsonify({
             "success": False,
@@ -1566,26 +1893,6 @@ def upload_video():
         }), 403
 
 
-    # -----------------------------------------------------
-    # CHECK FFMPEG
-    # -----------------------------------------------------
-
-    if (
-        FFMPEG_PATH != "ffmpeg"
-        and
-        not os.path.isfile(
-            FFMPEG_PATH
-        )
-    ):
-
-        return jsonify({
-            "success": False,
-            "error": (
-                "Không tìm thấy FFmpeg trên máy chủ."
-            )
-        }), 500
-
-
     file = request.files.get(
         "video"
     )
@@ -1593,8 +1900,7 @@ def upload_video():
 
     if (
         file is None
-        or
-        not file.filename
+        or not file.filename
     ):
 
         return jsonify({
@@ -1617,339 +1923,83 @@ def upload_video():
         }), 400
 
 
-    original_name = secure_filename(
+    safe_name = secure_filename(
         file.filename
     )
 
 
-    if (
-        not original_name
-        or
-        "." not in original_name
-    ):
+    if not safe_name:
 
         return jsonify({
             "success": False,
             "error": (
-                "Tên file video không hợp lệ."
+                "Tên file không hợp lệ."
             )
         }), 400
 
 
-    extension = original_name.rsplit(
-        ".",
-        1
-    )[1].lower()
-
-
-    file_id = uuid.uuid4().hex
-
-
-    input_name = (
-        f"{file_id}_input.{extension}"
+    extension = (
+        safe_name
+        .rsplit(".", 1)[1]
+        .lower()
     )
 
 
-    output_name = (
-        f"{file_id}_output.mp4"
+    unique_name = (
+        str(uuid.uuid4())
+        + "."
+        + extension
     )
 
 
-    input_path = os.path.join(
+    save_path = os.path.join(
         UPLOAD_DIR,
-        input_name
-    )
-
-
-    output_path = os.path.join(
-        OUTPUT_DIR,
-        output_name
+        unique_name
     )
 
 
     try:
 
-        # -------------------------------------------------
-        # SAVE INPUT
-        # -------------------------------------------------
-
         file.save(
-            input_path
+            save_path
         )
-
-
-        # -------------------------------------------------
-        # FFMPEG
-        # -------------------------------------------------
-
-        command = [
-            FFMPEG_PATH,
-            "-y",
-            "-i",
-            input_path,
-
-            "-c:v",
-            "libx264",
-
-            "-preset",
-            "medium",
-
-            "-crf",
-            "23",
-
-            "-pix_fmt",
-            "yuv420p",
-
-            "-c:a",
-            "aac",
-
-            "-b:a",
-            "128k",
-
-            "-movflags",
-            "+faststart",
-
-            output_path
-        ]
-
-
-        result = subprocess.run(
-            command,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-            encoding="utf-8",
-            errors="replace"
-        )
-
-
-        # -------------------------------------------------
-        # FFMPEG ERROR
-        # -------------------------------------------------
-
-        if result.returncode != 0:
-
-            print()
-            print(
-                "========== FFMPEG ERROR =========="
-            )
-
-            print(
-                result.stderr
-            )
-
-            print(
-                "==================================="
-            )
-
-            print()
-
-
-            for path in [
-                input_path,
-                output_path
-            ]:
-
-                try:
-
-                    if os.path.exists(
-                        path
-                    ):
-
-                        os.remove(path)
-
-                except OSError:
-
-                    pass
-
-
-            return jsonify({
-                "success": False,
-                "error": (
-                    "FFmpeg xử lý video thất bại."
-                )
-            }), 500
-
-
-        # -------------------------------------------------
-        # OUTPUT CHECK
-        # -------------------------------------------------
-
-        if (
-            not os.path.isfile(
-                output_path
-            )
-            or
-            os.path.getsize(
-                output_path
-            ) == 0
-        ):
-
-            for path in [
-                input_path,
-                output_path
-            ]:
-
-                try:
-
-                    if os.path.exists(
-                        path
-                    ):
-
-                        os.remove(path)
-
-                except OSError:
-
-                    pass
-
-
-            return jsonify({
-                "success": False,
-                "error": (
-                    "Không tạo được video đầu ra."
-                )
-            }), 500
-
-
-        # -------------------------------------------------
-        # REMOVE INPUT
-        # -------------------------------------------------
-
-        try:
-
-            if os.path.exists(
-                input_path
-            ):
-
-                os.remove(
-                    input_path
-                )
-
-        except OSError:
-
-            pass
-
-
-        return jsonify({
-
-            "success": True,
-
-            "message": (
-                "Upload thành công. "
-                "Video đã được FFmpeg xử lý."
-            ),
-
-            "filename": output_name,
-
-            "download_url": url_for(
-                "download_video",
-                filename=output_name
-            )
-
-        })
-
-
-    except FileNotFoundError:
-
-        for path in [
-            input_path,
-            output_path
-        ]:
-
-            try:
-
-                if os.path.exists(
-                    path
-                ):
-
-                    os.remove(
-                        path
-                    )
-
-            except OSError:
-
-                pass
-
-
-        return jsonify({
-            "success": False,
-            "error": (
-                "Không tìm thấy chương trình FFmpeg."
-            )
-        }), 500
 
 
     except Exception as e:
 
-        print()
         print(
-            "========== UPLOAD ERROR =========="
+            "[UPLOAD] LOI:",
+            e
         )
-
-        print(
-            str(e)
-        )
-
-        print(
-            "=================================="
-        )
-
-        print()
-
-
-        for path in [
-            input_path,
-            output_path
-        ]:
-
-            try:
-
-                if os.path.exists(
-                    path
-                ):
-
-                    os.remove(
-                        path
-                    )
-
-            except OSError:
-
-                pass
 
 
         return jsonify({
             "success": False,
             "error": (
-                "Không thể xử lý video trên server."
+                "Không thể lưu video."
             )
         }), 500
 
 
-# =========================================================
-# 413 - FILE TOO LARGE
-# =========================================================
+    return jsonify({
 
-@app.errorhandler(413)
-def request_entity_too_large(error):
+        "success":
+            True,
 
-    if request.path == "/upload":
+        "message":
+            "Upload thành công.",
 
-        return jsonify({
-            "success": False,
-            "error": (
-                "Video vượt quá giới hạn 500 MB."
+        "download_url":
+            url_for(
+                "download_video",
+                filename=unique_name
             )
-        }), 413
 
-
-    return (
-        "File quá lớn.",
-        413
-    )
+    })
 
 
 # =========================================================
-# VIDEO DOWNLOAD
+# DOWNLOAD
 # =========================================================
 
 @app.route(
@@ -1971,115 +2021,109 @@ def download_video(filename):
 
         session.clear()
 
+
         return redirect(
             url_for("index")
         )
 
 
-    safe_name = secure_filename(
-        filename
-    )
-
-
-    if safe_name != filename:
-
-        return (
-            "File không hợp lệ.",
-            400
-        )
-
-
-    if not safe_name.endswith(
-        "_output.mp4"
-    ):
-
-        return (
-            "File không hợp lệ.",
-            400
-        )
-
-
-    file_path = os.path.join(
-        OUTPUT_DIR,
-        safe_name
-    )
-
-
-    if not os.path.isfile(
-        file_path
-    ):
-
-        return (
-            "Không tìm thấy file.",
-            404
-        )
-
-
     return send_from_directory(
-        OUTPUT_DIR,
-        safe_name,
-        as_attachment=True,
-        download_name=safe_name,
-        mimetype="video/mp4"
+        UPLOAD_DIR,
+        filename,
+        as_attachment=True
     )
 
 
 # =========================================================
-# DATABASE CHECK
+# PWA MANIFEST
 # =========================================================
 
 @app.route(
-    "/kiem-tra-db"
+    "/manifest.json"
 )
-def check_db():
+def manifest():
 
-    current_user = get_current_user()
-
-
-    # Bắt buộc Admin
-    if (
-        current_user is None
-        or
-        current_user.status != "Active"
-        or
-        current_user.role != "Admin"
-    ):
-
-        return jsonify({
-            "error": "Unauthorized"
-        }), 403
-
-
-    users = User.query.order_by(
-        User.id.asc()
-    ).all()
-
-
-    result = []
-
-
-    for user in users:
-
-        result.append({
-
-            "id": user.id,
-
-            "username": user.username,
-
-            "email": user.email,
-
-            "plan": user.plan,
-
-            "role": user.role,
-
-            "status": user.status
-
-        })
-
-
-    return jsonify(
-        result
+    static_dir = os.path.join(
+        BASE_DIR,
+        "static"
     )
+
+
+    response = make_response(
+
+        send_from_directory(
+            static_dir,
+            "manifest.json"
+        )
+
+    )
+
+
+    response.headers[
+        "Cache-Control"
+    ] = "no-cache"
+
+
+    return response
+
+
+# =========================================================
+# SERVICE WORKER
+# =========================================================
+
+@app.route(
+    "/sw.js"
+)
+def service_worker():
+
+    static_dir = os.path.join(
+        BASE_DIR,
+        "static"
+    )
+
+
+    response = make_response(
+
+        send_from_directory(
+            static_dir,
+            "sw.js"
+        )
+
+    )
+
+
+    response.headers[
+        "Content-Type"
+    ] = "application/javascript"
+
+
+    response.headers[
+        "Cache-Control"
+    ] = "no-cache"
+
+
+    return response
+
+
+# =========================================================
+# 413
+# =========================================================
+
+@app.errorhandler(413)
+def request_entity_too_large(error):
+
+    return jsonify({
+
+        "success":
+            False,
+
+        "error":
+            (
+                "Video vượt quá "
+                "giới hạn 500 MB."
+            )
+
+    }), 413
 
 
 # =========================================================
@@ -2088,9 +2132,12 @@ def check_db():
 
 if __name__ == "__main__":
 
-    with app.app_context():
-
-        setup_database()
+    port = int(
+        os.environ.get(
+            "PORT",
+            "5000"
+        )
+    )
 
 
     print()
@@ -2105,39 +2152,13 @@ if __name__ == "__main__":
     )
 
     print(
-        "Database:"
+        "RESEND:"
     )
 
     print(
-        DB_PATH
-    )
-
-    print()
-
-    port = int(
-        os.environ.get(
-            "PORT",
-            "5000"
-        )
-    )
-
-
-    print(
-        "Website:"
-    )
-
-    print(
-        f"http://127.0.0.1:{port}"
-    )
-
-    print()
-
-    print(
-        "Admin:"
-    )
-
-    print(
-        f"http://127.0.0.1:{port}/admin"
+        "OK"
+        if RESEND_API_KEY
+        else "CHUA CAI RESEND_API_KEY"
     )
 
     print(
@@ -2150,5 +2171,5 @@ if __name__ == "__main__":
     app.run(
         host="0.0.0.0",
         port=port,
-        debug=True
+        debug=False
     )
