@@ -18,11 +18,6 @@ from werkzeug.utils import secure_filename
 
 import os
 import uuid
-import secrets
-import smtplib
-
-from datetime import datetime, timedelta
-from email.message import EmailMessage
 
 
 # =========================================================
@@ -36,9 +31,11 @@ app.config["SECRET_KEY"] = os.environ.get(
     "REUP_NVL_VIP_CHANGE_THIS_SECRET_KEY_2026"
 )
 
+# Cookie
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 
+# Render HTTPS
 app.config["SESSION_COOKIE_SECURE"] = (
     os.environ.get("COOKIE_SECURE", "0") == "1"
 )
@@ -122,38 +119,6 @@ def allowed_video(filename):
 
 
 # =========================================================
-# EMAIL CONFIG
-# =========================================================
-
-SMTP_HOST = os.environ.get(
-    "SMTP_HOST",
-    ""
-).strip()
-
-SMTP_PORT = int(
-    os.environ.get(
-        "SMTP_PORT",
-        "587"
-    )
-)
-
-SMTP_USER = os.environ.get(
-    "SMTP_USER",
-    ""
-).strip()
-
-SMTP_PASSWORD = os.environ.get(
-    "SMTP_PASSWORD",
-    ""
-).strip()
-
-SMTP_FROM = os.environ.get(
-    "SMTP_FROM",
-    SMTP_USER
-).strip()
-
-
-# =========================================================
 # USER MODEL
 # =========================================================
 
@@ -201,16 +166,6 @@ class User(db.Model):
         default="Active"
     )
 
-    reset_code_hash = db.Column(
-        db.String(255),
-        nullable=True
-    )
-
-    reset_code_expires = db.Column(
-        db.DateTime,
-        nullable=True
-    )
-
 
 # =========================================================
 # DATABASE SETUP / MIGRATION
@@ -231,10 +186,7 @@ def setup_database():
         )
     }
 
-    # -----------------------------------------------------
-    # ROLE
-    # -----------------------------------------------------
-
+    # Thêm role nếu database cũ chưa có
     if "role" not in columns:
 
         with db.engine.connect() as connection:
@@ -247,10 +199,7 @@ def setup_database():
 
             connection.commit()
 
-    # -----------------------------------------------------
-    # STATUS
-    # -----------------------------------------------------
-
+    # Thêm status nếu database cũ chưa có
     if "status" not in columns:
 
         with db.engine.connect() as connection:
@@ -263,40 +212,7 @@ def setup_database():
 
             connection.commit()
 
-    # -----------------------------------------------------
-    # RESET CODE HASH
-    # -----------------------------------------------------
-
-    if "reset_code_hash" not in columns:
-
-        with db.engine.connect() as connection:
-
-            connection.exec_driver_sql(
-                "ALTER TABLE user "
-                "ADD COLUMN reset_code_hash VARCHAR(255)"
-            )
-
-            connection.commit()
-
-    # -----------------------------------------------------
-    # RESET CODE EXPIRES
-    # -----------------------------------------------------
-
-    if "reset_code_expires" not in columns:
-
-        with db.engine.connect() as connection:
-
-            connection.exec_driver_sql(
-                "ALTER TABLE user "
-                "ADD COLUMN reset_code_expires DATETIME"
-            )
-
-            connection.commit()
-
-    # -----------------------------------------------------
-    # CHUẨN HÓA USER CŨ
-    # -----------------------------------------------------
-
+    # Chuẩn hóa dữ liệu cũ
     users = User.query.all()
 
     changed = False
@@ -304,7 +220,6 @@ def setup_database():
     for user in users:
 
         if not user.role:
-
             user.role = "User"
             changed = True
 
@@ -312,12 +227,10 @@ def setup_database():
             "User",
             "Admin"
         ]:
-
             user.role = "User"
             changed = True
 
         if not user.status:
-
             user.status = "Active"
             changed = True
 
@@ -325,7 +238,6 @@ def setup_database():
             "Active",
             "Banned"
         ]:
-
             user.status = "Active"
             changed = True
 
@@ -333,127 +245,15 @@ def setup_database():
             "Free",
             "Pro"
         ]:
-
             user.plan = "Free"
             changed = True
 
     if changed:
-
         db.session.commit()
 
 
 # =========================================================
-# EMAIL SENDER
-# =========================================================
-
-def send_reset_email(
-    receiver_email,
-    reset_code
-):
-
-    if not SMTP_HOST:
-
-        raise RuntimeError(
-            "SMTP_HOST chưa được cấu hình."
-        )
-
-    if not SMTP_USER:
-
-        raise RuntimeError(
-            "SMTP_USER chưa được cấu hình."
-        )
-
-    if not SMTP_PASSWORD:
-
-        raise RuntimeError(
-            "SMTP_PASSWORD chưa được cấu hình."
-        )
-
-    sender_email = (
-        SMTP_FROM
-        or SMTP_USER
-    )
-
-    message = EmailMessage()
-
-    message["Subject"] = (
-        "REUP NVL VIP - Ma dat lai mat khau"
-    )
-
-    message["From"] = sender_email
-
-    message["To"] = receiver_email
-
-    message.set_content(
-        f"""
-Xin chao,
-
-Ban vua yeu cau dat lai mat khau cho tai khoan REUP NVL VIP.
-
-Ma xac nhan cua ban la:
-
-{reset_code}
-
-Ma co hieu luc trong 10 phut.
-
-Neu ban khong yeu cau dat lai mat khau,
-hay bo qua email nay.
-
-REUP NVL VIP
-"""
-    )
-
-    # -----------------------------------------------------
-    # SMTP SSL - thường dùng port 465
-    # -----------------------------------------------------
-
-    if SMTP_PORT == 465:
-
-        with smtplib.SMTP_SSL(
-            SMTP_HOST,
-            SMTP_PORT,
-            timeout=20
-        ) as server:
-
-            server.login(
-                SMTP_USER,
-                SMTP_PASSWORD
-            )
-
-            server.send_message(
-                message
-            )
-
-        return
-
-    # -----------------------------------------------------
-    # SMTP STARTTLS - thường dùng port 587
-    # -----------------------------------------------------
-
-    with smtplib.SMTP(
-        SMTP_HOST,
-        SMTP_PORT,
-        timeout=20
-    ) as server:
-
-        server.ehlo()
-
-        server.starttls()
-
-        server.ehlo()
-
-        server.login(
-            SMTP_USER,
-            SMTP_PASSWORD
-        )
-
-        server.send_message(
-            message
-        )
-
-
-# =========================================================
-# AUTO SET ADMIN
+# AUTO ADMIN
 # =========================================================
 
 def auto_set_admin():
@@ -464,7 +264,6 @@ def auto_set_admin():
     ).strip()
 
     if not admin_username:
-
         return
 
     try:
@@ -477,8 +276,8 @@ def auto_set_admin():
         if user is None:
 
             print(
-                "[AUTO ADMIN] "
-                f"Chua co user: {admin_username}"
+                f"[AUTO ADMIN] "
+                f"Chua co tai khoan: {admin_username}"
             )
 
             return
@@ -500,8 +299,8 @@ def auto_set_admin():
             db.session.commit()
 
         print(
-            "[AUTO ADMIN] "
-            f"{user.username} = Admin"
+            f"[AUTO ADMIN] "
+            f"{user.username} -> Admin"
         )
 
     except Exception as e:
@@ -515,7 +314,7 @@ def auto_set_admin():
 
 
 # =========================================================
-# DATABASE INITIALIZATION
+# INITIALIZE DATABASE
 # =========================================================
 
 with app.app_context():
@@ -536,7 +335,6 @@ def get_current_user():
     )
 
     if not user_id:
-
         return None
 
     user = db.session.get(
@@ -603,7 +401,6 @@ def index():
         current_user = None
 
     return render_template(
-
         "index.html",
 
         logged_in=(
@@ -670,9 +467,9 @@ def register():
         ""
     )
 
-    # -----------------------------------------------------
+    # -------------------------
     # VALIDATION
-    # -----------------------------------------------------
+    # -------------------------
 
     if not username:
 
@@ -734,9 +531,9 @@ def register():
             success=None
         )
 
-    # -----------------------------------------------------
+    # -------------------------
     # CHECK USERNAME
-    # -----------------------------------------------------
+    # -------------------------
 
     existing_username = User.query.filter(
         db.func.lower(User.username)
@@ -758,9 +555,9 @@ def register():
             success=None
         )
 
-    # -----------------------------------------------------
+    # -------------------------
     # CHECK EMAIL
-    # -----------------------------------------------------
+    # -------------------------
 
     existing_email = User.query.filter(
         db.func.lower(User.email)
@@ -782,9 +579,9 @@ def register():
             success=None
         )
 
-    # -----------------------------------------------------
-    # AUTO ADMIN FOR USERNAME
-    # -----------------------------------------------------
+    # -------------------------
+    # AUTO ADMIN FOR REGISTERED
+    # -------------------------
 
     admin_username = os.environ.get(
         "ADMIN_USERNAME",
@@ -795,16 +592,13 @@ def register():
         admin_username
         and username.lower() == admin_username
     ):
-
         role = "Admin"
-
     else:
-
         role = "User"
 
-    # -----------------------------------------------------
+    # -------------------------
     # CREATE USER
-    # -----------------------------------------------------
+    # -------------------------
 
     new_user = User(
 
@@ -820,11 +614,7 @@ def register():
 
         role=role,
 
-        status="Active",
-
-        reset_code_hash=None,
-
-        reset_code_expires=None
+        status="Active"
     )
 
     db.session.add(
@@ -837,7 +627,7 @@ def register():
 
         success_message = (
             "Đăng ký thành công! "
-            "Tài khoản đã được cấp quyền Admin."
+            "Tài khoản của bạn đã được cấp quyền Admin."
         )
 
     else:
@@ -849,23 +639,14 @@ def register():
 
     return render_template(
         "index.html",
-
         logged_in=False,
-
         username=None,
-
         plan=None,
-
         role=None,
-
         current_user=None,
-
         admin_page=False,
-
         users=[],
-
         error=None,
-
         success=success_message
     )
 
@@ -905,7 +686,7 @@ def login():
             success=None
         )
 
-    # Tìm username hoặc email
+    # Tìm bằng username hoặc email
     user = User.query.filter(
         db.or_(
             db.func.lower(User.username)
@@ -988,333 +769,6 @@ def logout():
     return redirect(
         url_for("index")
     )
-
-
-# =========================================================
-# CHANGE PASSWORD
-# =========================================================
-
-@app.route(
-    "/change-password",
-    methods=["POST"]
-)
-def change_password():
-
-    current_user = get_current_user()
-
-    if current_user is None:
-
-        return jsonify({
-            "success": False,
-            "error": "Bạn chưa đăng nhập."
-        }), 401
-
-    current_password = request.form.get(
-        "current_password",
-        ""
-    )
-
-    new_password = request.form.get(
-        "new_password",
-        ""
-    )
-
-    new_password2 = request.form.get(
-        "new_password2",
-        ""
-    )
-
-    if not current_password:
-
-        return jsonify({
-            "success": False,
-            "error": "Vui lòng nhập mật khẩu hiện tại."
-        }), 400
-
-    if not new_password:
-
-        return jsonify({
-            "success": False,
-            "error": "Vui lòng nhập mật khẩu mới."
-        }), 400
-
-    if len(new_password) < 6:
-
-        return jsonify({
-            "success": False,
-            "error": "Mật khẩu mới phải có ít nhất 6 ký tự."
-        }), 400
-
-    if new_password != new_password2:
-
-        return jsonify({
-            "success": False,
-            "error": "Mật khẩu mới nhập lại không giống nhau."
-        }), 400
-
-    if not check_password_hash(
-        current_user.password_hash,
-        current_password
-    ):
-
-        return jsonify({
-            "success": False,
-            "error": "Mật khẩu hiện tại không đúng."
-        }), 400
-
-    if check_password_hash(
-        current_user.password_hash,
-        new_password
-    ):
-
-        return jsonify({
-            "success": False,
-            "error": "Mật khẩu mới phải khác mật khẩu cũ."
-        }), 400
-
-    current_user.password_hash = (
-        generate_password_hash(
-            new_password
-        )
-    )
-
-    current_user.reset_code_hash = None
-    current_user.reset_code_expires = None
-
-    db.session.commit()
-
-    return jsonify({
-        "success": True,
-        "message": "Đổi mật khẩu thành công."
-    })
-
-
-# =========================================================
-# FORGOT PASSWORD - SEND CODE
-# =========================================================
-
-@app.route(
-    "/forgot-password",
-    methods=["POST"]
-)
-def forgot_password():
-
-    email = request.form.get(
-        "email",
-        ""
-    ).strip().lower()
-
-    if not email:
-
-        return jsonify({
-            "success": False,
-            "error": "Vui lòng nhập email."
-        }), 400
-
-    user = User.query.filter(
-        db.func.lower(User.email)
-        == email
-    ).first()
-
-    # Không tiết lộ email có tồn tại
-    if user is None:
-
-        return jsonify({
-            "success": True,
-            "message": (
-                "Nếu email tồn tại trong hệ thống, "
-                "mã xác nhận sẽ được gửi về email đó."
-            )
-        })
-
-    # Tạo mã 6 số
-    reset_code = str(
-        secrets.randbelow(
-            900000
-        ) + 100000
-    )
-
-    user.reset_code_hash = (
-        generate_password_hash(
-            reset_code
-        )
-    )
-
-    user.reset_code_expires = (
-        datetime.utcnow()
-        + timedelta(minutes=10)
-    )
-
-    db.session.commit()
-
-    try:
-
-        send_reset_email(
-            user.email,
-            reset_code
-        )
-
-    except Exception as e:
-
-        print(
-            "[RESET EMAIL] LOI:",
-            e
-        )
-
-        user.reset_code_hash = None
-        user.reset_code_expires = None
-
-        db.session.commit()
-
-        return jsonify({
-            "success": False,
-            "error": (
-                "Không thể gửi email. "
-                "Hãy kiểm tra SMTP trên Render."
-            )
-        }), 500
-
-    return jsonify({
-        "success": True,
-        "message": (
-            "Mã xác nhận đã được gửi về email."
-        )
-    })
-
-
-# =========================================================
-# RESET PASSWORD
-# =========================================================
-
-@app.route(
-    "/reset-password",
-    methods=["POST"]
-)
-def reset_password():
-
-    email = request.form.get(
-        "email",
-        ""
-    ).strip().lower()
-
-    code = request.form.get(
-        "code",
-        ""
-    ).strip()
-
-    new_password = request.form.get(
-        "new_password",
-        ""
-    )
-
-    new_password2 = request.form.get(
-        "new_password2",
-        ""
-    )
-
-    if not email:
-
-        return jsonify({
-            "success": False,
-            "error": "Vui lòng nhập email."
-        }), 400
-
-    if not code:
-
-        return jsonify({
-            "success": False,
-            "error": "Vui lòng nhập mã xác nhận."
-        }), 400
-
-    if len(new_password) < 6:
-
-        return jsonify({
-            "success": False,
-            "error": "Mật khẩu mới phải có ít nhất 6 ký tự."
-        }), 400
-
-    if new_password != new_password2:
-
-        return jsonify({
-            "success": False,
-            "error": (
-                "Mật khẩu mới nhập lại "
-                "không giống nhau."
-            )
-        }), 400
-
-    user = User.query.filter(
-        db.func.lower(User.email)
-        == email
-    ).first()
-
-    if user is None:
-
-        return jsonify({
-            "success": False,
-            "error": "Mã xác nhận không hợp lệ."
-        }), 400
-
-    if not user.reset_code_hash:
-
-        return jsonify({
-            "success": False,
-            "error": (
-                "Mã xác nhận không tồn tại "
-                "hoặc đã hết hạn."
-            )
-        }), 400
-
-    if not user.reset_code_expires:
-
-        return jsonify({
-            "success": False,
-            "error": "Mã xác nhận đã hết hạn."
-        }), 400
-
-    if datetime.utcnow() > user.reset_code_expires:
-
-        user.reset_code_hash = None
-        user.reset_code_expires = None
-
-        db.session.commit()
-
-        return jsonify({
-            "success": False,
-            "error": (
-                "Mã xác nhận đã hết hạn. "
-                "Vui lòng lấy mã mới."
-            )
-        }), 400
-
-    if not check_password_hash(
-        user.reset_code_hash,
-        code
-    ):
-
-        return jsonify({
-            "success": False,
-            "error": "Mã xác nhận không đúng."
-        }), 400
-
-    user.password_hash = (
-        generate_password_hash(
-            new_password
-        )
-    )
-
-    # Mã chỉ dùng một lần
-    user.reset_code_hash = None
-    user.reset_code_expires = None
-
-    db.session.commit()
-
-    return jsonify({
-        "success": True,
-        "message": (
-            "Đặt lại mật khẩu thành công."
-        )
-    })
 
 
 # =========================================================
@@ -1510,16 +964,14 @@ def admin_delete_user(user_id):
             url_for("admin")
         )
 
-    # Không cho xóa Admin khác
+    # Không cho Admin xóa Admin khác
     if user.role == "Admin":
 
         return redirect(
             url_for("admin")
         )
 
-    db.session.delete(
-        user
-    )
+    db.session.delete(user)
 
     db.session.commit()
 
@@ -1532,9 +984,7 @@ def admin_delete_user(user_id):
 # DATABASE CHECK
 # =========================================================
 
-@app.route(
-    "/kiem-tra-db"
-)
+@app.route("/kiem-tra-db")
 def check_db():
 
     users = User.query.order_by(
@@ -1646,14 +1096,12 @@ def upload_video():
 
     try:
 
-        file.save(
-            save_path
-        )
+        file.save(save_path)
 
     except Exception as e:
 
         print(
-            "[UPLOAD] LOI:",
+            "UPLOAD ERROR:",
             e
         )
 
@@ -1711,42 +1159,16 @@ def download_video(filename):
 
 
 # =========================================================
-# 413 - FILE TOO LARGE
+# ERROR: FILE QUÁ LỚN
 # =========================================================
 
 @app.errorhandler(413)
 def request_entity_too_large(error):
 
     return jsonify({
-
         "success": False,
-
-        "error": (
-            "Video vượt quá giới hạn 500 MB."
-        )
-
+        "error": "Video vượt quá giới hạn 500 MB."
     }), 413
-
-
-# =========================================================
-# 500 - INTERNAL ERROR
-# =========================================================
-
-@app.errorhandler(500)
-def internal_server_error(error):
-
-    db.session.rollback()
-
-    return jsonify({
-
-        "success": False,
-
-        "error": (
-            "Máy chủ gặp lỗi. "
-            "Vui lòng thử lại."
-        )
-
-    }), 500
 
 
 # =========================================================
@@ -1805,18 +1227,6 @@ if __name__ == "__main__":
             "ADMIN_USERNAME",
             "(chua cai)"
         )
-    )
-
-    print()
-
-    print(
-        "SMTP:"
-    )
-
-    print(
-        SMTP_HOST
-        if SMTP_HOST
-        else "(chua cai)"
     )
 
     print(
