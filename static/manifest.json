@@ -1,0 +1,12 @@
+{
+  "name": "REUP NVL VIP",
+  "short_name": "REUP NVL",
+  "description": "Hệ thống REUP NVL VIP",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#070912",
+  "theme_color": "#070912",
+  "lang": "vi"
+}
