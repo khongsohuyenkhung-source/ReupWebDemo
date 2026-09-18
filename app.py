@@ -5,13 +5,19 @@ from flask import (
     redirect,
     url_for,
     session,
-    jsonify
+    jsonify,
+    send_from_directory
 )
 
 from flask_sqlalchemy import SQLAlchemy
-from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.security import (
+    generate_password_hash,
+    check_password_hash
+)
+from werkzeug.utils import secure_filename
 
 import os
+import uuid
 
 
 # =========================================================
@@ -20,17 +26,16 @@ import os
 
 app = Flask(__name__)
 
-# Secret key dùng để bảo vệ session.
 app.config["SECRET_KEY"] = os.environ.get(
     "SECRET_KEY",
     "REUP_NVL_VIP_CHANGE_THIS_SECRET_KEY_2026"
 )
 
-# Cookie bảo mật
+# Cookie
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 
-# Khi chạy HTTPS trên Render có thể bật True bằng biến môi trường.
+# Render HTTPS
 app.config["SESSION_COOKIE_SECURE"] = (
     os.environ.get("COOKIE_SECURE", "0") == "1"
 )
@@ -40,11 +45,19 @@ app.config["SESSION_COOKIE_SECURE"] = (
 # DATABASE
 # =========================================================
 
-BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+BASE_DIR = os.path.abspath(
+    os.path.dirname(__file__)
+)
 
-DB_DIR = os.path.join(BASE_DIR, "instance")
+DB_DIR = os.path.join(
+    BASE_DIR,
+    "instance"
+)
 
-os.makedirs(DB_DIR, exist_ok=True)
+os.makedirs(
+    DB_DIR,
+    exist_ok=True
+)
 
 DB_PATH = os.path.join(
     DB_DIR,
@@ -58,6 +71,51 @@ app.config["SQLALCHEMY_DATABASE_URI"] = (
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db = SQLAlchemy(app)
+
+
+# =========================================================
+# UPLOAD
+# =========================================================
+
+UPLOAD_DIR = os.path.join(
+    BASE_DIR,
+    "uploads"
+)
+
+os.makedirs(
+    UPLOAD_DIR,
+    exist_ok=True
+)
+
+ALLOWED_VIDEO_EXTENSIONS = {
+    "mp4",
+    "mov",
+    "avi",
+    "mkv",
+    "webm",
+    "m4v"
+}
+
+MAX_UPLOAD_SIZE = 500 * 1024 * 1024
+
+app.config["MAX_CONTENT_LENGTH"] = MAX_UPLOAD_SIZE
+
+
+def allowed_video(filename):
+
+    if not filename:
+        return False
+
+    if "." not in filename:
+        return False
+
+    extension = (
+        filename
+        .rsplit(".", 1)[1]
+        .lower()
+    )
+
+    return extension in ALLOWED_VIDEO_EXTENSIONS
 
 
 # =========================================================
@@ -117,13 +175,16 @@ def setup_database():
 
     db.create_all()
 
-    # Kiểm tra các cột hiện có
-    inspector = db.inspect(db.engine)
+    inspector = db.inspect(
+        db.engine
+    )
 
-    columns = [
+    columns = {
         column["name"]
-        for column in inspector.get_columns("user")
-    ]
+        for column in inspector.get_columns(
+            "user"
+        )
+    }
 
     # Thêm role nếu database cũ chưa có
     if "role" not in columns:
@@ -151,7 +212,7 @@ def setup_database():
 
             connection.commit()
 
-    # Đảm bảo dữ liệu cũ có giá trị hợp lệ
+    # Chuẩn hóa dữ liệu cũ
     users = User.query.all()
 
     changed = False
@@ -162,20 +223,29 @@ def setup_database():
             user.role = "User"
             changed = True
 
+        if user.role not in [
+            "User",
+            "Admin"
+        ]:
+            user.role = "User"
+            changed = True
+
         if not user.status:
             user.status = "Active"
             changed = True
 
-        if user.plan not in ["Free", "Pro"]:
-            user.plan = "Free"
-            changed = True
-
-        if user.role not in ["User", "Admin"]:
-            user.role = "User"
-            changed = True
-
-        if user.status not in ["Active", "Banned"]:
+        if user.status not in [
+            "Active",
+            "Banned"
+        ]:
             user.status = "Active"
+            changed = True
+
+        if user.plan not in [
+            "Free",
+            "Pro"
+        ]:
+            user.plan = "Free"
             changed = True
 
     if changed:
@@ -183,7 +253,7 @@ def setup_database():
 
 
 # =========================================================
-# AUTO SET ADMIN
+# AUTO ADMIN
 # =========================================================
 
 def auto_set_admin():
@@ -206,19 +276,8 @@ def auto_set_admin():
         if user is None:
 
             print(
-                "======================================"
-            )
-
-            print(
-                "AUTO ADMIN:"
-            )
-
-            print(
-                f"KHONG TIM THAY USER: {admin_username}"
-            )
-
-            print(
-                "======================================"
+                f"[AUTO ADMIN] "
+                f"Chua co tai khoan: {admin_username}"
             )
 
             return
@@ -240,27 +299,8 @@ def auto_set_admin():
             db.session.commit()
 
         print(
-            "======================================"
-        )
-
-        print(
-            "AUTO ADMIN:"
-        )
-
-        print(
-            f"USERNAME: {user.username}"
-        )
-
-        print(
-            "ROLE: Admin"
-        )
-
-        print(
-            "STATUS: Active"
-        )
-
-        print(
-            "======================================"
+            f"[AUTO ADMIN] "
+            f"{user.username} -> Admin"
         )
 
     except Exception as e:
@@ -268,7 +308,7 @@ def auto_set_admin():
         db.session.rollback()
 
         print(
-            "LOI AUTO ADMIN:",
+            "[AUTO ADMIN] LOI:",
             e
         )
 
@@ -290,7 +330,9 @@ with app.app_context():
 
 def get_current_user():
 
-    user_id = session.get("user_id")
+    user_id = session.get(
+        "user_id"
+    )
 
     if not user_id:
         return None
@@ -323,7 +365,6 @@ def require_admin():
             url_for("index")
         )
 
-    # Kiểm tra trạng thái
     if user.status != "Active":
 
         session.clear()
@@ -332,7 +373,6 @@ def require_admin():
             url_for("index")
         )
 
-    # Kiểm tra quyền Admin phía SERVER
     if user.role != "Admin":
 
         return None, redirect(
@@ -351,18 +391,21 @@ def index():
 
     current_user = get_current_user()
 
-    # Nếu session tồn tại nhưng tài khoản bị khóa
-    if current_user and current_user.status != "Active":
+    if (
+        current_user
+        and current_user.status != "Active"
+    ):
 
         session.clear()
 
         current_user = None
 
     return render_template(
-
         "index.html",
 
-        logged_in=current_user is not None,
+        logged_in=(
+            current_user is not None
+        ),
 
         username=(
             current_user.username
@@ -537,42 +580,62 @@ def register():
         )
 
     # -------------------------
-    # CREATE USER
+    # AUTO ADMIN FOR REGISTERED
     # -------------------------
 
     admin_username = os.environ.get(
-    "ADMIN_USERNAME",
-    ""
-).strip().lower()
+        "ADMIN_USERNAME",
+        ""
+    ).strip().lower()
 
-new_role = "User"
+    if (
+        admin_username
+        and username.lower() == admin_username
+    ):
+        role = "Admin"
+    else:
+        role = "User"
 
-if (
-    admin_username
-    and username.lower() == admin_username
-):
-    new_role = "Admin"
+    # -------------------------
+    # CREATE USER
+    # -------------------------
 
-new_user = User(
+    new_user = User(
 
-    username=username,
+        username=username,
 
-    email=email,
+        email=email,
 
-    password_hash=generate_password_hash(
-        password
-    ),
+        password_hash=generate_password_hash(
+            password
+        ),
 
-    plan="Free",
+        plan="Free",
 
-    role=new_role,
+        role=role,
 
-    status="Active"
-)
+        status="Active"
+    )
 
-    db.session.add(new_user)
+    db.session.add(
+        new_user
+    )
 
     db.session.commit()
+
+    if role == "Admin":
+
+        success_message = (
+            "Đăng ký thành công! "
+            "Tài khoản của bạn đã được cấp quyền Admin."
+        )
+
+    else:
+
+        success_message = (
+            "Đăng ký thành công! "
+            "Hãy đăng nhập."
+        )
 
     return render_template(
         "index.html",
@@ -584,7 +647,7 @@ new_user = User(
         admin_page=False,
         users=[],
         error=None,
-        success="Đăng ký thành công! Hãy đăng nhập."
+        success=success_message
     )
 
 
@@ -634,7 +697,6 @@ def login():
         )
     ).first()
 
-    # Không tiết lộ username/email nào tồn tại
     if user is None:
 
         return render_template(
@@ -650,7 +712,6 @@ def login():
             success=None
         )
 
-    # Kiểm tra password
     if not check_password_hash(
         user.password_hash,
         password
@@ -669,10 +730,6 @@ def login():
             success=None
         )
 
-    # -------------------------
-    # CHECK BANNED
-    # -------------------------
-
     if user.status != "Active":
 
         return render_template(
@@ -687,10 +744,6 @@ def login():
             error="Tài khoản của bạn đang bị khóa.",
             success=None
         )
-
-    # -------------------------
-    # LOGIN SESSION
-    # -------------------------
 
     session.clear()
 
@@ -725,9 +778,12 @@ def logout():
 @app.route("/admin")
 def admin():
 
-    current_user, error_response = require_admin()
+    current_user, error_response = (
+        require_admin()
+    )
 
     if error_response:
+
         return error_response
 
     users = User.query.order_by(
@@ -767,12 +823,14 @@ def admin():
 )
 def admin_change_plan(user_id):
 
-    current_user, error_response = require_admin()
+    current_user, error_response = (
+        require_admin()
+    )
 
     if error_response:
+
         return error_response
 
-    # Không cho thao tác lên chính mình
     if user_id == current_user.id:
 
         return redirect(
@@ -795,7 +853,6 @@ def admin_change_plan(user_id):
         ""
     )
 
-    # Chỉ cho phép 2 giá trị này
     if new_plan not in [
         "Free",
         "Pro"
@@ -824,12 +881,14 @@ def admin_change_plan(user_id):
 )
 def admin_change_status(user_id):
 
-    current_user, error_response = require_admin()
+    current_user, error_response = (
+        require_admin()
+    )
 
     if error_response:
+
         return error_response
 
-    # Không cho Admin tự khóa mình
     if user_id == current_user.id:
 
         return redirect(
@@ -852,7 +911,6 @@ def admin_change_status(user_id):
         ""
     )
 
-    # Chỉ Active hoặc Banned
     if new_status not in [
         "Active",
         "Banned"
@@ -881,12 +939,14 @@ def admin_change_status(user_id):
 )
 def admin_delete_user(user_id):
 
-    current_user, error_response = require_admin()
+    current_user, error_response = (
+        require_admin()
+    )
 
     if error_response:
+
         return error_response
 
-    # Không cho Admin tự xóa mình
     if user_id == current_user.id:
 
         return redirect(
@@ -904,7 +964,7 @@ def admin_delete_user(user_id):
             url_for("admin")
         )
 
-    # Không cho xóa tài khoản Admin khác
+    # Không cho Admin xóa Admin khác
     if user.role == "Admin":
 
         return redirect(
@@ -955,6 +1015,163 @@ def check_db():
 
 
 # =========================================================
+# UPLOAD VIDEO
+# =========================================================
+
+@app.route(
+    "/upload",
+    methods=["POST"]
+)
+def upload_video():
+
+    current_user = get_current_user()
+
+    if current_user is None:
+
+        return jsonify({
+            "success": False,
+            "error": "Bạn chưa đăng nhập."
+        }), 401
+
+    if current_user.status != "Active":
+
+        session.clear()
+
+        return jsonify({
+            "success": False,
+            "error": "Tài khoản của bạn đang bị khóa."
+        }), 403
+
+    file = request.files.get(
+        "video"
+    )
+
+    if file is None or not file.filename:
+
+        return jsonify({
+            "success": False,
+            "error": "Vui lòng chọn video."
+        }), 400
+
+    if not allowed_video(
+        file.filename
+    ):
+
+        return jsonify({
+            "success": False,
+            "error": "Định dạng video không được hỗ trợ."
+        }), 400
+
+    safe_name = secure_filename(
+        file.filename
+    )
+
+    if not safe_name:
+
+        return jsonify({
+            "success": False,
+            "error": "Tên file không hợp lệ."
+        }), 400
+
+    extension = ""
+
+    if "." in safe_name:
+
+        extension = (
+            safe_name
+            .rsplit(".", 1)[1]
+            .lower()
+        )
+
+    unique_name = (
+        str(uuid.uuid4())
+        + "."
+        + extension
+    )
+
+    save_path = os.path.join(
+        UPLOAD_DIR,
+        unique_name
+    )
+
+    try:
+
+        file.save(save_path)
+
+    except Exception as e:
+
+        print(
+            "UPLOAD ERROR:",
+            e
+        )
+
+        return jsonify({
+            "success": False,
+            "error": "Không thể lưu video."
+        }), 500
+
+    download_url = url_for(
+        "download_video",
+        filename=unique_name
+    )
+
+    return jsonify({
+
+        "success": True,
+
+        "message": "Upload thành công.",
+
+        "download_url": download_url
+
+    })
+
+
+# =========================================================
+# DOWNLOAD VIDEO
+# =========================================================
+
+@app.route(
+    "/download/<path:filename>"
+)
+def download_video(filename):
+
+    current_user = get_current_user()
+
+    if current_user is None:
+
+        return redirect(
+            url_for("index")
+        )
+
+    if current_user.status != "Active":
+
+        session.clear()
+
+        return redirect(
+            url_for("index")
+        )
+
+    return send_from_directory(
+        UPLOAD_DIR,
+        filename,
+        as_attachment=True
+    )
+
+
+# =========================================================
+# ERROR: FILE QUÁ LỚN
+# =========================================================
+
+@app.errorhandler(413)
+def request_entity_too_large(error):
+
+    return jsonify({
+        "success": False,
+        "error": "Video vượt quá giới hạn 500 MB."
+    }), 413
+
+
+# =========================================================
 # START
 # =========================================================
 
@@ -970,36 +1187,68 @@ if __name__ == "__main__":
     print(
         "======================================"
     )
+
     print(
         "Database:"
     )
+
     print(
         DB_PATH
     )
+
     print()
 
     print(
         "Website:"
     )
+
     print(
         "http://127.0.0.1:5000"
     )
+
     print()
 
     print(
         "Admin:"
     )
+
     print(
         "http://127.0.0.1:5000/admin"
+    )
+
+    print()
+
+    print(
+        "ADMIN_USERNAME:"
+    )
+
+    print(
+        os.environ.get(
+            "ADMIN_USERNAME",
+            "(chua cai)"
+        )
     )
 
     print(
         "======================================"
     )
+
     print()
 
+    port = int(
+        os.environ.get(
+            "PORT",
+            "5000"
+        )
+    )
+
     app.run(
-        host="127.0.0.1",
-        port=5000,
-        debug=True
+        host="0.0.0.0",
+        port=port,
+        debug=(
+            os.environ.get(
+                "FLASK_DEBUG",
+                "0"
+            ) == "1"
+        )
     )
