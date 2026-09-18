@@ -540,23 +540,35 @@ def register():
     # CREATE USER
     # -------------------------
 
-    new_user = User(
+    admin_username = os.environ.get(
+    "ADMIN_USERNAME",
+    ""
+).strip().lower()
 
-        username=username,
+new_role = "User"
 
-        email=email,
+if (
+    admin_username
+    and username.lower() == admin_username
+):
+    new_role = "Admin"
 
-        password_hash=generate_password_hash(
-            password
-        ),
+new_user = User(
 
-        # User đăng ký luôn bắt đầu là User
-        plan="Free",
+    username=username,
 
-        role="User",
+    email=email,
 
-        status="Active"
-    )
+    password_hash=generate_password_hash(
+        password
+    ),
+
+    plan="Free",
+
+    role=new_role,
+
+    status="Active"
+)
 
     db.session.add(new_user)
 
