@@ -3,24 +3,18 @@ const CACHE_NAME = "reup-nvl-vip-v1";
 self.addEventListener(
     "install",
     function(event) {
-
         self.skipWaiting();
-
     }
 );
-
 
 self.addEventListener(
     "activate",
     function(event) {
-
         event.waitUntil(
             self.clients.claim()
         );
-
     }
 );
-
 
 self.addEventListener(
     "fetch",
@@ -29,19 +23,16 @@ self.addEventListener(
         const request =
             event.request;
 
-
         if (
             request.method !== "GET"
         ) {
             return;
         }
 
-
         const url =
             new URL(
                 request.url
             );
-
 
         if (
             url.pathname.startsWith(
@@ -82,16 +73,11 @@ self.addEventListener(
                                 );
 
                                 return response;
-
                             }
                         );
-
                     }
                 )
-
             );
-
         }
-
     }
 );
