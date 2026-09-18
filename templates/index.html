@@ -143,6 +143,16 @@
             margin-bottom: 15px;
         }
 
+        .success-box {
+            padding: 11px 13px;
+            border-radius: 10px;
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.35);
+            color: #86efac;
+            font-size: 13px;
+            margin-bottom: 15px;
+        }
+
         /* =========================
            MAIN APP
         ========================= */
@@ -757,6 +767,12 @@
             </div>
         {% endif %}
 
+        {% if success %}
+            <div class="success-box">
+                {{ success }}
+            </div>
+        {% endif %}
+
         <form method="POST" action="{{ url_for('login') }}">
 
             <div class="input-group">
@@ -807,7 +823,19 @@
             </div>
         {% endif %}
 
-        <form method="POST" action="{{ url_for('register') }}">
+        {% if success %}
+            <div class="success-box">
+                {{ success }}
+            </div>
+        {% endif %}
+
+        <div id="registerClientError" class="error-box" style="display:none;"></div>
+
+        <form
+            method="POST"
+            action="{{ url_for('register') }}"
+            id="registerForm"
+        >
 
             <div class="input-group">
                 <label>Tài khoản</label>
@@ -816,6 +844,7 @@
                     name="username"
                     placeholder="Nhập tài khoản"
                     required
+                    autocomplete="username"
                 >
             </div>
 
@@ -826,6 +855,7 @@
                     name="email"
                     placeholder="Nhập email"
                     required
+                    autocomplete="email"
                 >
             </div>
 
@@ -834,8 +864,24 @@
                 <input
                     type="password"
                     name="password"
+                    id="registerPassword"
                     placeholder="Tạo mật khẩu"
                     required
+                    minlength="6"
+                    autocomplete="new-password"
+                >
+            </div>
+
+            <div class="input-group">
+                <label>Nhập lại mật khẩu</label>
+                <input
+                    type="password"
+                    name="password2"
+                    id="registerPassword2"
+                    placeholder="Nhập lại mật khẩu"
+                    required
+                    minlength="6"
+                    autocomplete="new-password"
                 >
             </div>
 
@@ -1559,6 +1605,88 @@
 
 
     /* =========================
+       REGISTER PASSWORD CHECK
+    ========================= */
+
+    const registerForm = document.getElementById("registerForm");
+    const registerPassword = document.getElementById("registerPassword");
+    const registerPassword2 = document.getElementById("registerPassword2");
+    const registerClientError = document.getElementById("registerClientError");
+
+    if (registerForm) {
+
+        registerForm.addEventListener("submit", function(event) {
+
+            const password =
+                registerPassword
+                    ? registerPassword.value
+                    : "";
+
+            const password2 =
+                registerPassword2
+                    ? registerPassword2.value
+                    : "";
+
+            if (password.length < 6) {
+
+                event.preventDefault();
+
+                if (registerClientError) {
+                    registerClientError.textContent =
+                        "Mật khẩu phải có ít nhất 6 ký tự.";
+                    registerClientError.style.display = "block";
+                }
+
+                return;
+            }
+
+            if (password !== password2) {
+
+                event.preventDefault();
+
+                if (registerClientError) {
+                    registerClientError.textContent =
+                        "Mật khẩu nhập lại không giống nhau.";
+                    registerClientError.style.display = "block";
+                }
+
+                return;
+            }
+
+            if (registerClientError) {
+                registerClientError.style.display = "none";
+                registerClientError.textContent = "";
+            }
+
+        });
+
+    }
+
+
+    if (registerPassword2) {
+
+        registerPassword2.addEventListener("input", function() {
+
+            if (!registerClientError) {
+                return;
+            }
+
+            if (
+                registerPassword &&
+                registerPassword.value &&
+                registerPassword2.value &&
+                registerPassword.value === registerPassword2.value
+            ) {
+                registerClientError.style.display = "none";
+                registerClientError.textContent = "";
+            }
+
+        });
+
+    }
+
+
+    /* =========================
        ADMIN SEARCH / FILTER
     ========================= */
 
@@ -1678,18 +1806,32 @@
             }
 
             const file = videoFile.files[0];
-            const allowedExtensions = ["mp4", "mov", "avi", "mkv", "webm", "m4v"];
-            const extension = file.name.split(".").pop().toLowerCase();
+            const allowedExtensions = [
+                "mp4",
+                "mov",
+                "avi",
+                "mkv",
+                "webm",
+                "m4v"
+            ];
+
+            const extension =
+                file.name
+                    .split(".")
+                    .pop()
+                    .toLowerCase();
 
             if (!allowedExtensions.includes(extension)) {
-                uploadStatus.textContent = "❌ Định dạng video không được hỗ trợ.";
+                uploadStatus.textContent =
+                    "❌ Định dạng video không được hỗ trợ.";
                 return;
             }
 
             const maxSize = 500 * 1024 * 1024;
 
             if (file.size > maxSize) {
-                uploadStatus.textContent = "❌ Video vượt quá giới hạn 500 MB.";
+                uploadStatus.textContent =
+                    "❌ Video vượt quá giới hạn 500 MB.";
                 return;
             }
 
@@ -1698,7 +1840,8 @@
 
             uploadButton.disabled = true;
             uploadButton.textContent = "⏳ ĐANG UPLOAD...";
-            uploadStatus.textContent = "⏳ Đang tải video lên máy chủ...";
+            uploadStatus.textContent =
+                "⏳ Đang tải video lên máy chủ...";
             downloadBox.style.display = "none";
 
             try {
@@ -1713,25 +1856,41 @@
                 try {
                     data = await response.json();
                 } catch (jsonError) {
-                    throw new Error("Máy chủ trả về dữ liệu không hợp lệ.");
+                    throw new Error(
+                        "Máy chủ trả về dữ liệu không hợp lệ."
+                    );
                 }
 
                 if (!response.ok) {
-                    throw new Error(data.error || "Upload thất bại.");
+                    throw new Error(
+                        data.error || "Upload thất bại."
+                    );
                 }
 
-                uploadStatus.textContent = "✅ Upload thành công!";
+                uploadStatus.textContent =
+                    "✅ Upload thành công!";
 
                 if (data.download_url) {
-                    downloadLink.href = data.download_url;
-                    downloadBox.style.display = "block";
+                    downloadLink.href =
+                        data.download_url;
+
+                    downloadBox.style.display =
+                        "block";
                 }
 
             } catch (error) {
-                uploadStatus.textContent = "❌ " + (error.message || "Có lỗi xảy ra.");
+
+                uploadStatus.textContent =
+                    "❌ " +
+                    (error.message ||
+                    "Có lỗi xảy ra.");
+
             } finally {
+
                 uploadButton.disabled = false;
-                uploadButton.textContent = "📤 UPLOAD VIDEO";
+                uploadButton.textContent =
+                    "📤 UPLOAD VIDEO";
+
             }
 
         });
