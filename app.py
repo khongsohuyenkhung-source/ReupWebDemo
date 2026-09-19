@@ -125,6 +125,32 @@ os.makedirs(
 )
 
 
+VIDEO_PROGRESS = {}
+VIDEO_PROGRESS_LOCK = threading.Lock()
+
+
+def set_video_progress(video_id, percent):
+    try:
+        percent = int(percent)
+    except Exception:
+        percent = 0
+
+    percent = max(0, min(100, percent))
+
+    with VIDEO_PROGRESS_LOCK:
+        VIDEO_PROGRESS[video_id] = percent
+
+
+def get_video_progress(video_id, status=None):
+    if status == "Completed":
+        return 100
+    if status == "Error":
+        return 0
+
+    with VIDEO_PROGRESS_LOCK:
+        return VIDEO_PROGRESS.get(video_id, 0)
+
+
 def allowed_video(filename):
 
     if not filename:
@@ -751,6 +777,11 @@ def serialize_video(video):
 
         "status": video.status,
 
+        "progress": get_video_progress(
+            video.id,
+            video.status
+        ),
+
         "created_at": (
             video.created_at.strftime(
                 "%d/%m/%Y %H:%M:%S"
@@ -810,6 +841,7 @@ def process_video_ffmpeg(video_id, process_mode="original"):
             video.output_name = None
 
             db.session.commit()
+            set_video_progress(video_id, 1)
 
             if not os.path.isfile(input_path):
                 raise RuntimeError(
@@ -877,27 +909,93 @@ def process_video_ffmpeg(video_id, process_mode="original"):
                 "128k",
                 "-movflags",
                 "+faststart",
+                "-progress",
+                "pipe:1",
+                "-nostats",
                 output_path
             ])
 
-            result = subprocess.run(
+            duration_result = subprocess.run(
+                [
+                    "ffprobe",
+                    "-v",
+                    "error",
+                    "-show_entries",
+                    "format=duration",
+                    "-of",
+                    "default=noprint_wrappers=1:nokey=1",
+                    input_path
+                ],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                timeout=30,
+                check=False
+            )
+
+            try:
+                duration_seconds = float(
+                    duration_result.stdout.strip()
+                )
+            except Exception:
+                duration_seconds = 0.0
+
+            process = subprocess.Popen(
                 command,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
-                timeout=1800,
-                check=False
+                bufsize=1
             )
 
-            if result.returncode != 0:
+            if process.stdout is not None:
+                for progress_line in process.stdout:
+                    progress_line = progress_line.strip()
 
-                error_text = (
-                    result.stderr
-                    or "FFmpeg xử lý thất bại."
-                )
+                    if progress_line.startswith(
+                        "out_time_ms="
+                    ):
+                        try:
+                            out_time_us = int(
+                                progress_line.split(
+                                    "=",
+                                    1
+                                )[1]
+                            )
 
+                            if duration_seconds > 0:
+                                percent = int(
+                                    (
+                                        out_time_us / 1000000.0
+                                    )
+                                    / duration_seconds
+                                    * 100
+                                )
+
+                                set_video_progress(
+                                    video_id,
+                                    min(99, max(1, percent))
+                                )
+                        except Exception:
+                            pass
+
+                    elif progress_line == "progress=end":
+                        set_video_progress(video_id, 99)
+
+            stderr_text = (
+                process.stderr.read()
+                if process.stderr is not None
+                else ""
+            )
+
+            return_code = process.wait()
+
+            if return_code != 0:
                 raise RuntimeError(
-                    error_text[-4000:]
+                    (
+                        stderr_text
+                        or "FFmpeg xử lý thất bại."
+                    )[-4000:]
                 )
 
             if not os.path.isfile(output_path):
@@ -930,6 +1028,7 @@ def process_video_ffmpeg(video_id, process_mode="original"):
             video.status = "Completed"
 
             db.session.commit()
+            set_video_progress(video_id, 100)
 
             print(
                 "[FFMPEG] COMPLETED:",
@@ -958,6 +1057,7 @@ def process_video_ffmpeg(video_id, process_mode="original"):
                 video.status = "Error"
 
                 db.session.commit()
+                set_video_progress(video_id, 0)
 
             print(
                 "[FFMPEG] TIMEOUT:",
@@ -979,6 +1079,7 @@ def process_video_ffmpeg(video_id, process_mode="original"):
                 video.status = "Error"
 
                 db.session.commit()
+                set_video_progress(video_id, 0)
 
             print(
                 "[FFMPEG] LOI: Không tìm thấy lệnh ffmpeg."
@@ -1005,6 +1106,7 @@ def process_video_ffmpeg(video_id, process_mode="original"):
                 video.status = "Error"
 
                 db.session.commit()
+                set_video_progress(video_id, 0)
 
             print(
                 "[FFMPEG] LOI:",
@@ -2342,6 +2444,8 @@ def upload_video():
             "success": False,
             "error": "Không thể lưu lịch sử video."
         }), 500
+
+    set_video_progress(video.id, 0)
 
     worker = threading.Thread(
         target=process_video_ffmpeg,
