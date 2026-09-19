@@ -776,7 +776,7 @@ def serialize_video(video):
 # FFMPEG PROCESSOR
 # =========================================================
 
-def process_video_ffmpeg(video_id):
+def process_video_ffmpeg(video_id, process_mode="original"):
 
     with app.app_context():
 
@@ -816,6 +816,32 @@ def process_video_ffmpeg(video_id):
                     "Không tìm thấy file video gốc."
                 )
 
+            if process_mode not in {
+                "original",
+                "fit",
+                "crop"
+            }:
+                process_mode = "original"
+
+            video_filter = None
+
+            if process_mode == "fit":
+                video_filter = (
+                    "scale=720:1280:"
+                    "force_original_aspect_ratio=decrease,"
+                    "pad=720:1280:"
+                    "(ow-iw)/2:(oh-ih)/2:black,"
+                    "setsar=1"
+                )
+
+            elif process_mode == "crop":
+                video_filter = (
+                    "scale=720:1280:"
+                    "force_original_aspect_ratio=increase,"
+                    "crop=720:1280,"
+                    "setsar=1"
+                )
+
             command = [
                 "ffmpeg",
                 "-y",
@@ -827,7 +853,16 @@ def process_video_ffmpeg(video_id):
                 "-map",
                 "0:v:0",
                 "-map",
-                "0:a?",
+                "0:a?"
+            ]
+
+            if video_filter:
+                command.extend([
+                    "-vf",
+                    video_filter
+                ])
+
+            command.extend([
                 "-c:v",
                 "libx264",
                 "-preset",
@@ -843,7 +878,7 @@ def process_video_ffmpeg(video_id):
                 "-movflags",
                 "+faststart",
                 output_path
-            ]
+            ])
 
             result = subprocess.run(
                 command,
@@ -2172,6 +2207,18 @@ def upload_video():
             "error": "Tài khoản của bạn đang bị khóa."
         }), 403
 
+    process_mode = request.form.get(
+        "process_mode",
+        "original"
+    ).strip().lower()
+
+    if process_mode not in {
+        "original",
+        "fit",
+        "crop"
+    }:
+        process_mode = "original"
+
     file = request.files.get(
         "video"
     )
@@ -2298,7 +2345,10 @@ def upload_video():
 
     worker = threading.Thread(
         target=process_video_ffmpeg,
-        args=(video.id,),
+        args=(
+            video.id,
+            process_mode
+        ),
         daemon=True
     )
 
