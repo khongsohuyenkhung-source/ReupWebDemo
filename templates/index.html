@@ -915,6 +915,41 @@
             margin: 4px 0 9px;
         }
 
+        .live-progress {
+            display: none;
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #1c3553;
+            border-radius: 8px;
+            background: #081321;
+        }
+
+        .live-progress.show { display: block; }
+
+        .live-progress-head {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 7px;
+            font-size: 8px;
+            font-weight: 800;
+        }
+
+        .live-progress-track {
+            height: 8px;
+            overflow: hidden;
+            border-radius: 999px;
+            background: #14243a;
+        }
+
+        .live-progress-bar {
+            width: 0%;
+            height: 100%;
+            border-radius: inherit;
+            background: linear-gradient(90deg, #1684ff, #20d9a1);
+            transition: width .4s ease;
+        }
+
         .process-options {
             margin-top: 11px;
             padding: 11px;
@@ -2850,7 +2885,23 @@
                         </div>
                     </div>
 
-<button
+<div
+                                                class="live-progress"
+                                                id="liveProgress"
+                                            >
+                                                <div class="live-progress-head">
+                                                    <span id="liveProgressText">FFmpeg đang xử lý...</span>
+                                                    <span id="liveProgressPercent">0%</span>
+                                                </div>
+                                                <div class="live-progress-track">
+                                                    <div
+                                                        class="live-progress-bar"
+                                                        id="liveProgressBar"
+                                                    ></div>
+                                                </div>
+                                            </div>
+
+                                            <button
                                                 type="submit"
                                                 class="process-btn"
                                                 id="uploadButton"
@@ -3711,6 +3762,27 @@
             "uploadStatus"
         );
 
+    const liveProgress =
+        document.getElementById(
+            "liveProgress"
+        );
+
+    const liveProgressText =
+        document.getElementById(
+            "liveProgressText"
+        );
+
+    const liveProgressPercent =
+        document.getElementById(
+            "liveProgressPercent"
+        );
+
+    const liveProgressBar =
+        document.getElementById(
+            "liveProgressBar"
+        );
+
+
     const downloadLink =
         document.getElementById(
             "downloadLink"
@@ -4174,6 +4246,79 @@
     }
 
 
+    function updateLiveProgress(percent, text) {
+        percent = Math.max(
+            0,
+            Math.min(100, Number(percent || 0))
+        );
+
+        if (liveProgress) {
+            liveProgress.classList.add("show");
+        }
+
+        if (liveProgressPercent) {
+            liveProgressPercent.textContent =
+                Math.round(percent) + "%";
+        }
+
+        if (liveProgressBar) {
+            liveProgressBar.style.width =
+                percent + "%";
+        }
+
+        if (liveProgressText && text) {
+            liveProgressText.textContent = text;
+        }
+    }
+
+
+    async function waitForVideoProcessing(videoId) {
+        while (true) {
+            await new Promise(
+                resolve => setTimeout(resolve, 2000)
+            );
+
+            const response = await fetch(
+                "/api/videos/" +
+                encodeURIComponent(videoId),
+                { cache: "no-store" }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok || !data.success) {
+                throw new Error(
+                    data.error ||
+                    "Không đọc được tiến độ video."
+                );
+            }
+
+            const video = data.video;
+
+            updateLiveProgress(
+                video.progress || 0,
+                video.status === "Processing"
+                    ? "FFmpeg đang xử lý..."
+                    : (
+                        video.status === "Completed"
+                            ? "Xử lý hoàn tất"
+                            : "Xử lý lỗi"
+                    )
+            );
+
+            if (video.status === "Completed") {
+                return video;
+            }
+
+            if (video.status === "Error") {
+                throw new Error(
+                    "FFmpeg xử lý video thất bại."
+                );
+            }
+        }
+    }
+
+
     if (uploadForm) {
 
         uploadForm.addEventListener(
@@ -4293,6 +4438,21 @@
                     }
 
 
+                    updateLiveProgress(
+                        0,
+                        "FFmpeg đang xử lý..."
+                    );
+
+                    if (uploadStatus) {
+                        uploadStatus.textContent =
+                            "⏳ Upload xong, FFmpeg đang xử lý...";
+                    }
+
+                    const finishedVideo =
+                        await waitForVideoProcessing(
+                            data.video.id
+                        );
+
                     sessionProcessing =
                         Math.max(
                             0,
@@ -4301,42 +4461,36 @@
 
                     sessionSuccess += 1;
 
-
                     updateDashboard();
 
+                    updateLiveProgress(
+                        100,
+                        "Xử lý hoàn tất"
+                    );
 
                     if (uploadStatus) {
                         uploadStatus.textContent =
-                            "✅ Upload thành công.";
+                            "✅ Xử lý video hoàn tất.";
                     }
-
 
                     if (
                         downloadLink &&
-                        data.download_url
+                        finishedVideo.download_url
                     ) {
-
                         downloadLink.href =
-                            data.download_url;
+                            finishedVideo.download_url;
 
                         downloadLink.classList.add(
                             "show"
                         );
-
                     }
 
-
-                    if (
-                        data.download_url
-                    ) {
-
+                    if (finishedVideo.download_url) {
                         addHistory(
                             file,
-                            data.download_url
+                            finishedVideo.download_url
                         );
-
                     }
-
 
                     addActivity(
                         "Đã xử lý xong " +
@@ -4375,6 +4529,11 @@
 
                     updateDashboard();
 
+
+                    updateLiveProgress(
+                        0,
+                        "Xử lý lỗi"
+                    );
 
                     if (uploadStatus) {
 
