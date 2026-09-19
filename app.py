@@ -1215,6 +1215,147 @@ def index():
 
 
 # =========================================================
+# PUBLIC LEGAL PAGES - TIKTOK APP REVIEW
+# =========================================================
+
+LEGAL_PAGE_STYLE = """
+    * { box-sizing: border-box; }
+    body {
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        background: #070912;
+        color: #e8ecf7;
+        line-height: 1.7;
+    }
+    .wrap {
+        width: min(920px, calc(100% - 32px));
+        margin: 42px auto;
+        background: #0d1222;
+        border: 1px solid #202a45;
+        border-radius: 18px;
+        padding: 34px;
+        box-shadow: 0 20px 60px rgba(0,0,0,.25);
+    }
+    h1 { color: #ffffff; margin-top: 0; }
+    h2 { color: #7dd3fc; margin-top: 28px; }
+    p, li { color: #cbd5e1; }
+    a { color: #38bdf8; }
+    .brand { color: #38bdf8; font-weight: 700; letter-spacing: .5px; }
+    .updated { color: #94a3b8; font-size: 14px; }
+"""
+
+
+@app.route("/terms")
+def terms():
+
+    return f"""<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Terms of Service - REUP NVL VIP</title>
+    <style>{{LEGAL_PAGE_STYLE}}</style>
+</head>
+<body>
+<div class="wrap">
+    <div class="brand">REUP NVL VIP</div>
+    <h1>Terms of Service</h1>
+    <p class="updated">Last updated: September 19, 2026</p>
+
+    <p>These Terms of Service govern your use of REUP NVL VIP, a web application for uploading, processing, managing, and publishing video content to connected social media accounts.</p>
+
+    <h2>1. Acceptance of Terms</h2>
+    <p>By accessing or using REUP NVL VIP, you agree to these Terms of Service. If you do not agree, do not use the service.</p>
+
+    <h2>2. Your Content and Permissions</h2>
+    <p>You are responsible for the videos, captions, media, and other content you upload or publish through the service. You must own the content or have all permissions and rights required to process and publish it.</p>
+
+    <h2>3. Acceptable Use</h2>
+    <p>You may not use REUP NVL VIP to violate applicable law, infringe intellectual property or privacy rights, impersonate others, distribute malicious content, or misuse connected third-party platforms.</p>
+
+    <h2>4. Third-Party Services</h2>
+    <p>REUP NVL VIP may connect to third-party services such as TikTok. Your use of those services remains subject to their own terms, policies, permissions, API rules, and account restrictions.</p>
+
+    <h2>5. Account Security</h2>
+    <p>You are responsible for maintaining the security of your REUP NVL VIP account and for activity performed through your account.</p>
+
+    <h2>6. Service Availability</h2>
+    <p>Features may be changed, suspended, or unavailable from time to time because of maintenance, technical issues, or changes to third-party services.</p>
+
+    <h2>7. Termination</h2>
+    <p>Access may be restricted or terminated when these Terms are violated or when required to protect the service, its users, or third-party platforms.</p>
+
+    <h2>8. Disclaimer</h2>
+    <p>The service is provided on an "as is" and "as available" basis to the extent permitted by applicable law.</p>
+
+    <h2>9. Changes to These Terms</h2>
+    <p>These Terms may be updated as the service changes. The updated date shown on this page identifies the current version.</p>
+
+    <h2>10. Contact</h2>
+    <p>Questions about these Terms can be submitted through the REUP NVL VIP service administrator.</p>
+
+    <p><a href="/">Return to REUP NVL VIP</a></p>
+</div>
+</body>
+</html>"""
+
+
+@app.route("/privacy")
+def privacy():
+
+    return f"""<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Privacy Policy - REUP NVL VIP</title>
+    <style>{{LEGAL_PAGE_STYLE}}</style>
+</head>
+<body>
+<div class="wrap">
+    <div class="brand">REUP NVL VIP</div>
+    <h1>Privacy Policy</h1>
+    <p class="updated">Last updated: September 19, 2026</p>
+
+    <p>This Privacy Policy explains how REUP NVL VIP handles information when you use the web application and connect supported third-party accounts.</p>
+
+    <h2>1. Information We Process</h2>
+    <p>Depending on the features you use, the service may process account information you provide, uploaded videos and related metadata, processing history, and information returned by third-party authorization services.</p>
+
+    <h2>2. Connected TikTok Accounts</h2>
+    <p>When you choose to connect TikTok, TikTok may provide account information and authorization credentials according to the permissions you approve. REUP NVL VIP uses this information only to provide the connected features you request.</p>
+
+    <h2>3. How Information Is Used</h2>
+    <p>Information is used to authenticate users, process and manage videos, provide requested publishing features, maintain service functionality, and protect the service from abuse.</p>
+
+    <h2>4. Sharing</h2>
+    <p>Information is not sold. Information may be sent to a connected third-party service when necessary to perform an action you request, such as publishing authorized content to your connected account.</p>
+
+    <h2>5. Data Security</h2>
+    <p>Reasonable technical measures are used to protect account and authorization information. No internet-based service can guarantee absolute security.</p>
+
+    <h2>6. Data Retention</h2>
+    <p>Information is retained only as needed to provide the service, maintain required records, and support connected features. Retention may also depend on technical and legal requirements.</p>
+
+    <h2>7. Your Choices</h2>
+    <p>You may stop using the service or disconnect supported third-party integrations when those controls are available. Third-party permissions can also be managed through the applicable third-party platform.</p>
+
+    <h2>8. Third-Party Policies</h2>
+    <p>Third-party services have their own privacy policies and data practices. This Privacy Policy applies only to REUP NVL VIP.</p>
+
+    <h2>9. Changes to This Policy</h2>
+    <p>This Privacy Policy may be updated as the service changes. The updated date shown on this page identifies the current version.</p>
+
+    <h2>10. Contact</h2>
+    <p>Privacy questions can be submitted through the REUP NVL VIP service administrator.</p>
+
+    <p><a href="/">Return to REUP NVL VIP</a></p>
+</div>
+</body>
+</html>"""
+
+
+# =========================================================
 # REGISTER
 # =========================================================
 
