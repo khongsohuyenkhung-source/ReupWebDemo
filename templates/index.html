@@ -1543,7 +1543,44 @@
                 text-overflow: ellipsis;
             }
         }
-    </style>
+    
+        .video-filter-select {
+            padding: 7px 9px;
+            border: 1px solid #1c3553;
+            border-radius: 7px;
+            background: #081321;
+            color: #dce8f6;
+            font-size: 8px;
+            outline: none;
+        }
+
+        .video-actions {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+
+        .video-action {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 5px 8px;
+            border: 1px solid #1c3553;
+            border-radius: 6px;
+            background: #0b1828;
+            color: #dce8f6;
+            text-decoration: none;
+            font-size: 7px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .video-action.delete {
+            color: #ff7187;
+            border-color: rgba(255,82,108,.35);
+        }
+
+</style>
 </head>
 
 <body>
@@ -2957,6 +2994,16 @@
                                     id="videoSearch"
                                     placeholder="Tìm video..."
                                 >
+                                <select
+                                    id="videoStatusFilter"
+                                    class="video-filter-select"
+                                >
+                                    <option value="all">Tất cả trạng thái</option>
+                                    <option value="Processing">Đang xử lý</option>
+                                    <option value="Completed">Thành công</option>
+                                    <option value="Error">Lỗi</option>
+                                </select>
+
 
                             </div>
 
@@ -4038,211 +4085,228 @@
     }
 
 
-    function addHistory(
-        file,
-        downloadUrl
-    ) {
+    function applyVideoFilters() {
+        const search = (
+            document.getElementById("videoSearch")?.value || ""
+        ).toLowerCase().trim();
 
+        const filter = (
+            document.getElementById("videoStatusFilter")?.value || "all"
+        );
+
+        document.querySelectorAll(
+            "#historyBody tr"
+        ).forEach(function(row) {
+            const matchName =
+                !search ||
+                (row.dataset.name || "").includes(search);
+
+            const matchStatus =
+                filter === "all" ||
+                row.dataset.status === filter;
+
+            row.style.display =
+                matchName && matchStatus
+                    ? ""
+                    : "none";
+        });
+    }
+
+
+    function renderVideoHistory(videos) {
         const empty =
-            document.getElementById(
-                "emptyHistory"
-            );
-
+            document.getElementById("emptyHistory");
         const wrap =
-            document.getElementById(
-                "historyTableWrap"
-            );
-
+            document.getElementById("historyTableWrap");
         const body =
-            document.getElementById(
-                "historyBody"
-            );
+            document.getElementById("historyBody");
 
+        if (!body) return;
 
-        if (!body) {
+        body.innerHTML = "";
+
+        if (!videos || !videos.length) {
+            if (empty) empty.classList.remove("hidden");
+            if (wrap) wrap.classList.add("hidden");
             return;
         }
 
+        if (empty) empty.classList.add("hidden");
+        if (wrap) wrap.classList.remove("hidden");
 
-        if (empty) {
-            empty.classList.add(
-                "hidden"
+        videos.forEach(function(video, index) {
+            const row = document.createElement("tr");
+
+            row.dataset.name =
+                (video.original_name || "").toLowerCase();
+            row.dataset.status =
+                video.status || "";
+
+            const indexCell = document.createElement("td");
+            indexCell.className = "video-index";
+            indexCell.textContent = index + 1;
+
+            const videoCell = document.createElement("td");
+            const name = document.createElement("div");
+            name.className = "video-name";
+            name.textContent = video.original_name || "Video";
+
+            const sub = document.createElement("div");
+            sub.className = "video-sub";
+            sub.textContent =
+                video.status === "Completed"
+                    ? "Video đã xử lý"
+                    : (
+                        video.status === "Processing"
+                            ? "FFmpeg đang xử lý"
+                            : "Xử lý thất bại"
+                    );
+
+            videoCell.appendChild(name);
+            videoCell.appendChild(sub);
+
+            const sizeCell = document.createElement("td");
+            sizeCell.textContent =
+                formatBytes(video.file_size || 0);
+
+            const statusCell = document.createElement("td");
+            const status = document.createElement("span");
+
+            if (video.status === "Completed") {
+                status.className =
+                    "status-pill status-success";
+                status.textContent = "● Thành công";
+            } else if (video.status === "Processing") {
+                status.className =
+                    "status-pill status-processing";
+                status.textContent = "● Đang xử lý";
+            } else {
+                status.className =
+                    "status-pill status-error";
+                status.textContent = "● Lỗi";
+            }
+
+            statusCell.appendChild(status);
+
+            const timeCell = document.createElement("td");
+            timeCell.textContent =
+                video.created_at || "-";
+
+            const actionCell = document.createElement("td");
+            const actions = document.createElement("div");
+            actions.className = "video-actions";
+
+            if (
+                video.status === "Completed" &&
+                video.download_url
+            ) {
+                const view = document.createElement("a");
+                view.href = video.download_url;
+                view.target = "_blank";
+                view.rel = "noopener";
+                view.className = "video-action";
+                view.textContent = "▶ Xem";
+                actions.appendChild(view);
+
+                const download = document.createElement("a");
+                download.href = video.download_url;
+                download.className = "video-action";
+                download.textContent = "↓ Tải";
+                actions.appendChild(download);
+            }
+
+            if (video.status !== "Processing") {
+                const remove = document.createElement("button");
+                remove.type = "button";
+                remove.className = "video-action delete";
+                remove.textContent = "🗑 Xóa";
+                remove.onclick = function() {
+                    deleteVideo(video.id);
+                };
+                actions.appendChild(remove);
+            }
+
+            actionCell.appendChild(actions);
+
+            row.appendChild(indexCell);
+            row.appendChild(videoCell);
+            row.appendChild(sizeCell);
+            row.appendChild(statusCell);
+            row.appendChild(timeCell);
+            row.appendChild(actionCell);
+
+            body.appendChild(row);
+        });
+
+        applyVideoFilters();
+    }
+
+
+    async function loadVideoHistory() {
+        try {
+            const response = await fetch(
+                "/api/videos",
+                { cache: "no-store" }
             );
+
+            const data = await response.json();
+
+            if (!response.ok || !data.success) {
+                return;
+            }
+
+            renderVideoHistory(
+                data.videos || []
+            );
+
+        } catch (error) {
+            console.error("Load videos:", error);
+        }
+    }
+
+
+    async function deleteVideo(videoId) {
+        if (!window.confirm(
+            "Bạn có chắc muốn xóa video này?"
+        )) {
+            return;
         }
 
-        if (wrap) {
-            wrap.classList.remove(
-                "hidden"
-            );
-        }
-
-
-        const row =
-            document.createElement(
-                "tr"
-            );
-
-
-        row.dataset.name =
-            file.name.toLowerCase();
-
-
-        const indexCell =
-            document.createElement(
-                "td"
-            );
-
-        indexCell.className =
-            "video-index";
-
-        indexCell.textContent =
-            sessionSuccess;
-
-
-        const videoCell =
-            document.createElement(
-                "td"
-            );
-
-
-        const name =
-            document.createElement(
-                "div"
-            );
-
-        name.className =
-            "video-name";
-
-        name.textContent =
-            file.name;
-
-
-        const sub =
-            document.createElement(
-                "div"
-            );
-
-        sub.className =
-            "video-sub";
-
-        sub.textContent =
-            "Video đã xử lý";
-
-
-        videoCell.appendChild(
-            name
-        );
-
-        videoCell.appendChild(
-            sub
-        );
-
-
-        const sizeCell =
-            document.createElement(
-                "td"
-            );
-
-        sizeCell.textContent =
-            formatBytes(
-                file.size
-            );
-
-
-        const statusCell =
-            document.createElement(
-                "td"
-            );
-
-
-        const status =
-            document.createElement(
-                "span"
-            );
-
-        status.className =
-            "status-pill status-success";
-
-        status.textContent =
-            "● Thành công";
-
-        statusCell.appendChild(
-            status
-        );
-
-
-        const timeCell =
-            document.createElement(
-                "td"
-            );
-
-        const now =
-            new Date();
-
-        timeCell.textContent =
-            now.toLocaleTimeString(
-                "vi-VN",
+        try {
+            const response = await fetch(
+                "/api/videos/" +
+                encodeURIComponent(videoId) +
+                "/delete",
                 {
-                    hour: "2-digit",
-                    minute: "2-digit"
+                    method: "DELETE",
+                    headers: {
+                        "Accept": "application/json"
+                    }
                 }
             );
 
+            const data = await response.json();
 
-        const actionCell =
-            document.createElement(
-                "td"
+            if (!response.ok || !data.success) {
+                throw new Error(
+                    data.error ||
+                    "Không thể xóa video."
+                );
+            }
+
+            addActivity(
+                "Đã xóa video",
+                "success"
             );
 
+            await loadVideoHistory();
 
-        const link =
-            document.createElement(
-                "a"
+        } catch (error) {
+            window.alert(
+                error.message ||
+                "Không thể xóa video."
             );
-
-        link.href =
-            downloadUrl;
-
-        link.className =
-            "download-table";
-
-        link.textContent =
-            "↓ Tải";
-
-
-        actionCell.appendChild(
-            link
-        );
-
-
-        row.appendChild(
-            indexCell
-        );
-
-        row.appendChild(
-            videoCell
-        );
-
-        row.appendChild(
-            sizeCell
-        );
-
-        row.appendChild(
-            statusCell
-        );
-
-        row.appendChild(
-            timeCell
-        );
-
-        row.appendChild(
-            actionCell
-        );
-
-
-        body.prepend(
-            row
-        );
+        }
     }
 
 
@@ -4486,10 +4550,7 @@
                     }
 
                     if (finishedVideo.download_url) {
-                        addHistory(
-                            file,
-                            finishedVideo.download_url
-                        );
+                        await loadVideoHistory();
                     }
 
                     addActivity(
@@ -4574,187 +4635,30 @@
 
 
     /* =========================
-       VIDEO SEARCH
+       VIDEO SEARCH / FILTER
     ========================= */
 
     const videoSearch =
-        document.getElementById(
-            "videoSearch"
-        );
+        document.getElementById("videoSearch");
 
+    const videoStatusFilter =
+        document.getElementById("videoStatusFilter");
 
     if (videoSearch) {
-
         videoSearch.addEventListener(
             "input",
-            function() {
-
-                const value =
-                    this.value
-                        .toLowerCase()
-                        .trim();
-
-
-                document
-                    .querySelectorAll(
-                        "#historyBody tr"
-                    )
-                    .forEach(
-                        function(row) {
-
-                            const name =
-                                row.dataset.name ||
-                                "";
-
-                            row.style.display =
-                                name.includes(
-                                    value
-                                )
-                                    ? ""
-                                    : "none";
-
-                        }
-                    );
-
-            }
+            applyVideoFilters
         );
     }
 
-
-    /* =========================
-       ADMIN FILTER
-    ========================= */
-
-    const userSearch =
-        document.getElementById(
-            "userSearch"
-        );
-
-    const planFilter =
-        document.getElementById(
-            "planFilter"
-        );
-
-    const statusFilter =
-        document.getElementById(
-            "statusFilter"
-        );
-
-
-    function filterUsers() {
-
-        const rows =
-            document.querySelectorAll(
-                ".user-row"
-            );
-
-
-        const search =
-            userSearch
-                ? userSearch.value
-                    .toLowerCase()
-                    .trim()
-                : "";
-
-
-        const plan =
-            planFilter
-                ? planFilter.value
-                : "all";
-
-
-        const status =
-            statusFilter
-                ? statusFilter.value
-                : "all";
-
-
-        rows.forEach(
-            function(row) {
-
-                const username =
-                    row.dataset.username ||
-                    "";
-
-                const email =
-                    row.dataset.email ||
-                    "";
-
-
-                const matchSearch =
-                    username.includes(
-                        search
-                    ) ||
-                    email.includes(
-                        search
-                    );
-
-
-                const matchPlan =
-                    plan === "all" ||
-                    row.dataset.plan ===
-                    plan;
-
-
-                const matchStatus =
-                    status === "all" ||
-                    row.dataset.status ===
-                    status;
-
-
-                row.classList.toggle(
-                    "hidden-row",
-                    !(
-                        matchSearch &&
-                        matchPlan &&
-                        matchStatus
-                    )
-                );
-
-            }
-        );
-    }
-
-
-    if (userSearch) {
-        userSearch.addEventListener(
-            "input",
-            filterUsers
-        );
-    }
-
-    if (planFilter) {
-        planFilter.addEventListener(
+    if (videoStatusFilter) {
+        videoStatusFilter.addEventListener(
             "change",
-            filterUsers
+            applyVideoFilters
         );
     }
 
-    if (statusFilter) {
-        statusFilter.addEventListener(
-            "change",
-            filterUsers
-        );
-    }
-
-
-    /* =========================
-       INITIAL DASHBOARD
-    ========================= */
-
-    updateDashboard();
-
-
-    window.addEventListener(
-        "beforeunload",
-        function() {
-            if (currentPreviewUrl) {
-                URL.revokeObjectURL(
-                    currentPreviewUrl
-                );
-            }
-        }
-    );
+    loadVideoHistory();
 
 
     /* =========================
