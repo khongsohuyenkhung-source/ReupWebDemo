@@ -8,7 +8,7 @@
         content="width=device-width, initial-scale=1.0, viewport-fit=cover"
     >
 
-    <meta name="theme-color" content="#070b17">
+    <meta name="theme-color" content="#060b16">
 
     <meta
         name="apple-mobile-web-app-capable"
@@ -25,7 +25,6 @@
         content="REUP NVL VIP"
     >
 
-    <!-- Dùng đường dẫn trực tiếp để tránh BuildError -->
     <link rel="manifest" href="/manifest.json">
 
     <title>REUP NVL VIP</title>
@@ -38,23 +37,38 @@
         }
 
         :root {
-            --bg: #060a14;
-            --sidebar: #080d19;
-            --panel: #0d1422;
-            --panel2: #111a2a;
-            --border: #1c2940;
-            --text: #f5f7fb;
-            --muted: #718096;
-            --blue: #1478ff;
+            --bg: #050a13;
+            --sidebar: #07101d;
+            --panel: #0b1524;
+            --panel2: #0d192a;
+            --panel3: #091321;
+            --border: #192b43;
+            --border2: #203754;
+            --text: #f6f8fc;
+            --muted: #6f829d;
+            --blue: #1684ff;
+            --blue2: #0d6efd;
             --cyan: #20d7ff;
-            --green: #25d07f;
-            --red: #ff5570;
-            --orange: #ff9f43;
+            --green: #24d18b;
+            --purple: #8b5cf6;
+            --pink: #ec4899;
+            --red: #ff526c;
+            --orange: #ffb23f;
+        }
+
+        html {
+            scroll-behavior: smooth;
         }
 
         body {
             min-height: 100vh;
-            background: var(--bg);
+            background:
+                radial-gradient(
+                    circle at 40% 0%,
+                    rgba(15, 67, 120, .07),
+                    transparent 32%
+                ),
+                var(--bg);
             color: var(--text);
             font-family:
                 Inter,
@@ -83,7 +97,7 @@
         }
 
         /* =========================
-           LOGIN / REGISTER
+           AUTH
         ========================= */
 
         .auth-screen {
@@ -96,15 +110,15 @@
             background:
                 radial-gradient(
                     circle at 20% 10%,
-                    rgba(20,120,255,.16),
+                    rgba(20, 120, 255, .15),
                     transparent 35%
                 ),
                 radial-gradient(
                     circle at 80% 90%,
-                    rgba(32,215,255,.08),
+                    rgba(32, 215, 255, .07),
                     transparent 35%
                 ),
-                #060a14;
+                #050a13;
         }
 
         .auth-box {
@@ -112,9 +126,9 @@
             max-width: 430px;
             padding: 34px;
             border-radius: 20px;
-            background: #0b1220;
+            background: #0a1321;
             border: 1px solid var(--border);
-            box-shadow: 0 25px 70px rgba(0,0,0,.45);
+            box-shadow: 0 25px 70px rgba(0, 0, 0, .45);
         }
 
         .auth-logo {
@@ -122,7 +136,6 @@
             font-size: 27px;
             font-weight: 900;
             letter-spacing: 1px;
-            color: #fff;
             margin-bottom: 6px;
         }
 
@@ -159,15 +172,15 @@
             height: 47px;
             padding: 0 14px;
             color: white;
-            background: #080e19;
-            border: 1px solid #1d2a40;
+            background: #07101c;
+            border: 1px solid #1d2d44;
             border-radius: 10px;
             outline: none;
         }
 
         .input-group input:focus {
             border-color: var(--blue);
-            box-shadow: 0 0 0 3px rgba(20,120,255,.12);
+            box-shadow: 0 0 0 3px rgba(20, 120, 255, .12);
         }
 
         .auth-btn {
@@ -175,9 +188,9 @@
             height: 47px;
             border: 0;
             border-radius: 10px;
-            background: linear-gradient(135deg,#0868ee,#139cff);
+            background: linear-gradient(135deg, #0868ee, #139cff);
             color: white;
-            font-weight: 800;
+            font-weight: 900;
             margin-top: 4px;
         }
 
@@ -204,18 +217,18 @@
 
         .error-box {
             color: #ff9aab;
-            border: 1px solid rgba(255,85,112,.3);
-            background: rgba(255,85,112,.08);
+            border: 1px solid rgba(255, 85, 112, .3);
+            background: rgba(255, 85, 112, .08);
         }
 
         .success-box {
             color: #7ce5ae;
-            border: 1px solid rgba(37,208,127,.3);
-            background: rgba(37,208,127,.08);
+            border: 1px solid rgba(37, 208, 127, .3);
+            background: rgba(37, 208, 127, .08);
         }
 
         /* =========================
-           APP
+           APP SHELL
         ========================= */
 
         .app-shell {
@@ -223,170 +236,191 @@
             display: flex;
         }
 
-        /* SIDEBAR */
-
         .sidebar {
-            width: 230px;
+            width: 235px;
             position: fixed;
             left: 0;
             top: 0;
             bottom: 0;
             z-index: 100;
             background: var(--sidebar);
-            border-right: 1px solid #142035;
+            border-right: 1px solid #14243a;
             display: flex;
             flex-direction: column;
         }
 
         .brand {
-            height: 65px;
+            height: 72px;
             display: flex;
             align-items: center;
-            gap: 10px;
-            padding: 0 19px;
-            border-bottom: 1px solid #142035;
+            gap: 11px;
+            padding: 0 18px;
+            border-bottom: 1px solid #14243a;
         }
 
         .brand-icon {
-            width: 30px;
-            height: 30px;
+            width: 34px;
+            height: 34px;
             display: grid;
             place-items: center;
-            border-radius: 8px;
-            background: linear-gradient(135deg,#0a75ff,#20d7ff);
+            border-radius: 9px;
+            background:
+                linear-gradient(
+                    135deg,
+                    #176cff,
+                    #20d7ff
+                );
+            font-size: 16px;
             font-weight: 900;
+            box-shadow: 0 0 25px rgba(20, 120, 255, .22);
         }
 
-        .brand-text {
+        .brand-name {
             font-size: 15px;
             font-weight: 900;
             white-space: nowrap;
         }
 
+        .brand-sub {
+            color: #53667f;
+            font-size: 8px;
+            margin-top: 3px;
+        }
+
         .sidebar-menu {
-            padding: 16px 11px;
+            padding: 15px 10px;
             flex: 1;
+            overflow-y: auto;
         }
 
         .menu-label {
-            color: #41506a;
-            font-size: 10px;
-            font-weight: 800;
-            letter-spacing: .8px;
-            padding: 10px 12px;
+            color: #3e536f;
+            font-size: 9px;
+            font-weight: 900;
+            letter-spacing: 1px;
+            padding: 10px 12px 8px;
         }
 
         .menu-item {
             width: 100%;
-            height: 42px;
+            height: 43px;
             display: flex;
             align-items: center;
             gap: 12px;
             padding: 0 13px;
             margin-bottom: 5px;
             border-radius: 8px;
-            color: #78879d;
+            color: #8192aa;
             text-decoration: none;
             border: 0;
             background: transparent;
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 700;
             text-align: left;
         }
 
         .menu-item:hover {
             color: white;
-            background: #101a2a;
+            background: #0e1b2d;
         }
 
         .menu-item.active {
             color: white;
-            background: linear-gradient(
-                90deg,
-                rgba(20,120,255,.25),
-                rgba(20,120,255,.05)
-            );
+            background:
+                linear-gradient(
+                    90deg,
+                    rgba(20, 120, 255, .28),
+                    rgba(20, 120, 255, .05)
+                );
             border-left: 2px solid #1684ff;
         }
 
         .menu-icon {
             width: 21px;
             text-align: center;
-            font-size: 16px;
+            font-size: 15px;
         }
 
         .sidebar-bottom {
-            padding: 14px 12px;
-            border-top: 1px solid #142035;
+            padding: 12px;
+            border-top: 1px solid #14243a;
         }
 
-        .side-plan {
+        .pro-box {
             padding: 13px;
             border-radius: 10px;
-            background: #0d1625;
-            border: 1px solid #17263d;
-            margin-bottom: 10px;
+            background: #0c1828;
+            border: 1px solid #1a304c;
+            margin-bottom: 9px;
         }
 
-        .side-plan-title {
-            color: #65758c;
-            font-size: 10px;
+        .pro-box-label {
+            color: #5b6f89;
+            font-size: 9px;
             margin-bottom: 6px;
         }
 
-        .side-plan-value {
-            font-weight: 900;
+        .pro-box-value {
             color: var(--cyan);
-            font-size: 13px;
+            font-size: 12px;
+            font-weight: 900;
         }
 
-        /* MAIN */
-
         .main-area {
-            width: calc(100% - 230px);
-            margin-left: 230px;
+            width: calc(100% - 235px);
+            margin-left: 235px;
             min-height: 100vh;
         }
 
+        /* =========================
+           TOPBAR
+        ========================= */
+
         .topbar {
-            height: 65px;
+            height: 72px;
             position: sticky;
             top: 0;
             z-index: 50;
-            background: rgba(6,10,20,.94);
+            background: rgba(5, 10, 19, .94);
             backdrop-filter: blur(12px);
-            border-bottom: 1px solid #142035;
+            border-bottom: 1px solid #14243a;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0 25px;
+            padding: 0 22px;
+        }
+
+        .top-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
 
         .mobile-menu {
             display: none;
-            width: 38px;
-            height: 38px;
+            width: 39px;
+            height: 39px;
             border: 1px solid var(--border);
             border-radius: 9px;
-            background: #0c1421;
+            background: #0c1727;
             color: white;
         }
 
-        .page-name {
-            font-size: 14px;
+        .page-title {
+            font-size: 13px;
             font-weight: 800;
         }
 
         .top-right {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 13px;
         }
 
-        .online {
-            color: #61dba0;
-            font-size: 11px;
-            font-weight: 700;
+        .system-online {
+            color: #5be2a2;
+            font-size: 10px;
+            font-weight: 800;
         }
 
         .user-chip {
@@ -395,192 +429,431 @@
             gap: 9px;
             padding: 6px 9px;
             border-radius: 9px;
-            background: #0d1522;
-            border: 1px solid #19263a;
+            background: #0c1726;
+            border: 1px solid #192c45;
         }
 
         .mini-avatar {
-            width: 29px;
-            height: 29px;
+            width: 30px;
+            height: 30px;
             display: grid;
             place-items: center;
             border-radius: 50%;
-            background: #182943;
-            color: #5cc9ff;
+            background: #12315a;
+            color: #67d5ff;
             font-size: 12px;
             font-weight: 900;
         }
 
-        .user-chip-name {
-            font-size: 11px;
-            font-weight: 800;
+        .chip-name {
+            font-size: 10px;
+            font-weight: 900;
         }
 
-        .user-chip-plan {
-            color: #65758c;
-            font-size: 9px;
+        .chip-plan {
+            color: #61758f;
+            font-size: 8px;
             margin-top: 2px;
         }
 
+        /* =========================
+           CONTENT
+        ========================= */
+
         .content {
-            padding: 25px;
-            max-width: 1550px;
-            margin: auto;
+            padding: 22px;
+            max-width: 1650px;
+            margin: 0 auto;
         }
 
         .welcome {
-            margin-bottom: 22px;
+            margin-bottom: 18px;
         }
 
         .welcome h1 {
-            font-size: 24px;
+            font-size: 22px;
             margin-bottom: 5px;
         }
 
         .welcome p {
-            color: #617089;
-            font-size: 12px;
+            color: #60748f;
+            font-size: 10px;
         }
 
-        /* STATS */
+        /* =========================
+           STAT CARDS
+        ========================= */
 
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(4,1fr);
-            gap: 14px;
-            margin-bottom: 18px;
+            grid-template-columns:
+                repeat(5, minmax(0, 1fr));
+            gap: 12px;
+            margin-bottom: 15px;
         }
 
         .stat-card {
-            min-height: 95px;
-            padding: 17px;
-            border: 1px solid var(--border);
-            background: var(--panel);
-            border-radius: 11px;
+            min-height: 110px;
             position: relative;
             overflow: hidden;
+            padding: 15px;
+            border-radius: 10px;
+            background:
+                linear-gradient(
+                    145deg,
+                    #0d192a,
+                    #091321
+                );
+            border: 1px solid #1a2e49;
+        }
+
+        .stat-card::after {
+            content: "";
+            position: absolute;
+            width: 70px;
+            height: 70px;
+            right: -25px;
+            top: -25px;
+            border-radius: 50%;
+            background: rgba(20, 120, 255, .06);
+        }
+
+        .stat-top {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            margin-bottom: 12px;
+        }
+
+        .stat-icon {
+            width: 31px;
+            height: 31px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            font-size: 14px;
+        }
+
+        .icon-blue {
+            color: #61b7ff;
+            background: rgba(20, 120, 255, .16);
+        }
+
+        .icon-purple {
+            color: #b692ff;
+            background: rgba(139, 92, 246, .16);
+        }
+
+        .icon-green {
+            color: #5be1a7;
+            background: rgba(36, 209, 139, .15);
+        }
+
+        .icon-pink {
+            color: #ff80c4;
+            background: rgba(236, 72, 153, .14);
+        }
+
+        .icon-red {
+            color: #ff788c;
+            background: rgba(255, 82, 108, .14);
         }
 
         .stat-label {
-            color: #68778d;
-            font-size: 10px;
-            margin-bottom: 10px;
+            color: #8798ad;
+            font-size: 9px;
+            font-weight: 800;
         }
 
-        .stat-number {
-            font-size: 23px;
+        .stat-value {
+            font-size: 25px;
             font-weight: 900;
+            line-height: 1;
         }
 
         .stat-note {
             margin-top: 7px;
-            color: #536177;
-            font-size: 9px;
+            color: #596d87;
+            font-size: 8px;
         }
 
-        .stat-icon {
-            position: absolute;
-            right: 15px;
-            top: 16px;
-            font-size: 20px;
-            opacity: .65;
-        }
+        /* =========================
+           MAIN GRID
+        ========================= */
 
-        /* DASHBOARD GRID */
-
-        .dashboard-grid {
+        .dashboard-layout {
             display: grid;
-            grid-template-columns: minmax(0,2fr) 310px;
-            gap: 17px;
+            grid-template-columns:
+                minmax(0, 1fr) 285px;
+            gap: 14px;
         }
 
         .panel {
-            border: 1px solid var(--border);
+            border: 1px solid #1a2e49;
             background: var(--panel);
-            border-radius: 11px;
+            border-radius: 10px;
             overflow: hidden;
         }
 
         .panel + .panel {
-            margin-top: 17px;
+            margin-top: 14px;
         }
 
         .panel-head {
-            min-height: 48px;
-            padding: 0 17px;
+            min-height: 46px;
+            padding: 0 14px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            border-bottom: 1px solid #18253a;
+            gap: 10px;
+            border-bottom: 1px solid #172a43;
         }
 
         .panel-title {
-            font-size: 12px;
-            font-weight: 800;
+            font-size: 11px;
+            font-weight: 900;
         }
 
         .panel-sub {
-            color: #617089;
-            font-size: 9px;
+            color: #5d718c;
+            font-size: 8px;
         }
 
-        /* UPLOAD */
+        /* =========================
+           CHARTS
+        ========================= */
+
+        .analytics-grid {
+            display: grid;
+            grid-template-columns:
+                minmax(0, 1.7fr) minmax(260px, .8fr);
+            gap: 14px;
+            margin-bottom: 14px;
+        }
+
+        .chart-body {
+            padding: 17px 15px 13px;
+        }
+
+        .chart-legend {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 17px;
+            font-size: 8px;
+            color: #73869e;
+        }
+
+        .legend-dot {
+            width: 7px;
+            height: 7px;
+            display: inline-block;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+
+        .bar-chart {
+            height: 155px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 13px;
+            padding: 10px 7px 0;
+            border-bottom: 1px solid #21334c;
+            background:
+                repeating-linear-gradient(
+                    to bottom,
+                    transparent,
+                    transparent 37px,
+                    rgba(78, 103, 135, .12) 38px
+                );
+        }
+
+        .bar-group {
+            flex: 1;
+            height: 100%;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 3px;
+            position: relative;
+        }
+
+        .bar {
+            width: 10px;
+            min-height: 3px;
+            border-radius: 3px 3px 0 0;
+            transition: height .3s;
+        }
+
+        .bar-blue {
+            background: #1684ff;
+        }
+
+        .bar-purple {
+            background: #8b5cf6;
+        }
+
+        .bar-green {
+            background: #24d18b;
+        }
+
+        .bar-red {
+            background: #ff526c;
+        }
+
+        .bar-label {
+            position: absolute;
+            bottom: -22px;
+            color: #566a83;
+            font-size: 7px;
+            white-space: nowrap;
+        }
+
+        .chart-footer-space {
+            height: 24px;
+        }
+
+        .ratio-body {
+            padding: 15px;
+        }
+
+        .ratio-content {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            min-height: 175px;
+        }
+
+        .donut {
+            width: 125px;
+            height: 125px;
+            flex: 0 0 125px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            background:
+                conic-gradient(
+                    #24d18b 0deg 0deg,
+                    #1684ff 0deg 360deg
+                );
+            position: relative;
+        }
+
+        .donut::before {
+            content: "";
+            position: absolute;
+            width: 83px;
+            height: 83px;
+            border-radius: 50%;
+            background: #0b1524;
+        }
+
+        .donut-center {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+        }
+
+        .donut-number {
+            font-size: 20px;
+            font-weight: 900;
+        }
+
+        .donut-label {
+            color: #657a94;
+            font-size: 7px;
+            margin-top: 3px;
+        }
+
+        .ratio-list {
+            flex: 1;
+        }
+
+        .ratio-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            min-height: 29px;
+            font-size: 8px;
+            color: #8a9bb0;
+        }
+
+        .ratio-name {
+            display: flex;
+            align-items: center;
+        }
+
+        .ratio-value {
+            color: #d5deea;
+            font-weight: 800;
+        }
+
+        /* =========================
+           UPLOAD
+        ========================= */
 
         .upload-body {
-            padding: 17px;
+            padding: 14px;
         }
 
         .drop-zone {
-            min-height: 190px;
-            border: 1px dashed #28415f;
-            border-radius: 10px;
+            min-height: 145px;
+            border: 1px dashed #284765;
+            border-radius: 9px;
             background:
                 radial-gradient(
                     circle at center,
-                    rgba(20,120,255,.07),
+                    rgba(20, 120, 255, .07),
                     transparent 55%
                 ),
-                #09111e;
+                #081321;
             display: flex;
             align-items: center;
             justify-content: center;
             text-align: center;
-            padding: 25px;
+            padding: 20px;
             transition: .2s;
         }
 
         .drop-zone.drag {
-            border-color: #21c8ff;
-            background: rgba(20,120,255,.08);
+            border-color: #20d7ff;
+            background: rgba(20, 120, 255, .08);
         }
 
         .upload-icon {
-            font-size: 37px;
-            margin-bottom: 11px;
+            font-size: 30px;
+            margin-bottom: 8px;
         }
 
         .upload-title {
-            font-size: 13px;
-            font-weight: 800;
-            margin-bottom: 6px;
+            font-size: 11px;
+            font-weight: 900;
+            margin-bottom: 5px;
         }
 
         .upload-help {
-            color: #607089;
-            font-size: 10px;
+            color: #60758f;
+            font-size: 8px;
             line-height: 1.6;
-            margin-bottom: 14px;
+            margin-bottom: 11px;
         }
 
         .choose-btn,
         .process-btn {
             border: 0;
-            border-radius: 8px;
-            background: linear-gradient(135deg,#0869ef,#159dff);
+            border-radius: 7px;
+            background:
+                linear-gradient(
+                    135deg,
+                    #0869ef,
+                    #159dff
+                );
             color: white;
-            font-weight: 800;
-            padding: 10px 16px;
-            font-size: 11px;
+            font-weight: 900;
+            padding: 9px 14px;
+            font-size: 9px;
         }
 
         #videoFile {
@@ -589,11 +862,11 @@
 
         .selected-file {
             display: none;
-            margin-top: 14px;
-            padding: 12px 14px;
-            border-radius: 8px;
-            background: #0b1524;
-            border: 1px solid #1c304b;
+            margin-top: 11px;
+            padding: 10px;
+            border-radius: 7px;
+            background: #0b1828;
+            border: 1px solid #1c3553;
             text-align: left;
         }
 
@@ -602,224 +875,328 @@
         }
 
         .selected-name {
-            font-size: 11px;
-            font-weight: 800;
+            font-size: 9px;
+            font-weight: 900;
             word-break: break-all;
         }
 
         .selected-size {
-            color: #62738b;
-            font-size: 9px;
-            margin: 5px 0 10px;
+            color: #627791;
+            font-size: 8px;
+            margin: 4px 0 9px;
         }
 
         .upload-status {
-            margin-top: 12px;
-            color: #8a9ab1;
-            font-size: 10px;
-            min-height: 16px;
+            min-height: 14px;
+            margin-top: 9px;
+            color: #8193a9;
+            font-size: 8px;
         }
 
         .download-link {
             display: none;
-            margin-top: 11px;
-            padding: 9px 13px;
-            border-radius: 8px;
-            border: 1px solid rgba(37,208,127,.35);
-            background: rgba(37,208,127,.08);
+            margin-top: 8px;
+            padding: 7px 11px;
+            border-radius: 7px;
+            border: 1px solid rgba(37, 208, 127, .35);
+            background: rgba(37, 208, 127, .08);
             color: #66e3a5;
             text-decoration: none;
-            font-size: 10px;
-            font-weight: 800;
+            font-size: 8px;
+            font-weight: 900;
         }
 
         .download-link.show {
             display: inline-block;
         }
 
-        /* HISTORY */
+        /* =========================
+           VIDEO TABLE
+        ========================= */
+
+        .video-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .table-search {
+            width: 200px;
+            height: 30px;
+            padding: 0 10px;
+            color: white;
+            background: #081321;
+            border: 1px solid #1b314d;
+            border-radius: 6px;
+            outline: none;
+            font-size: 8px;
+        }
+
+        .video-table-wrap {
+            overflow-x: auto;
+        }
 
         .video-table {
             width: 100%;
+            min-width: 720px;
             border-collapse: collapse;
         }
 
         .video-table th {
-            padding: 11px 15px;
+            padding: 10px 13px;
             text-align: left;
-            color: #53637a;
-            font-size: 9px;
-            font-weight: 800;
-            border-bottom: 1px solid #18253a;
+            color: #637891;
+            font-size: 7px;
+            font-weight: 900;
+            border-bottom: 1px solid #172a43;
+            background: #0a1727;
         }
 
         .video-table td {
-            padding: 13px 15px;
-            font-size: 10px;
-            border-bottom: 1px solid #141f31;
+            padding: 11px 13px;
+            font-size: 8px;
+            border-bottom: 1px solid #14253b;
+            vertical-align: middle;
         }
 
         .video-table tr:last-child td {
             border-bottom: 0;
         }
 
+        .video-index {
+            color: #657991;
+            width: 35px;
+        }
+
         .video-name {
+            max-width: 220px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
             font-weight: 800;
-            max-width: 250px;
+        }
+
+        .video-sub {
+            color: #596e88;
+            font-size: 7px;
+            margin-top: 3px;
+        }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 7px;
+            border-radius: 20px;
+            font-size: 7px;
+            font-weight: 900;
+        }
+
+        .status-success {
+            color: #60e5aa;
+            background: rgba(36, 209, 139, .10);
+        }
+
+        .status-processing {
+            color: #80bdff;
+            background: rgba(22, 132, 255, .11);
+        }
+
+        .status-error {
+            color: #ff8294;
+            background: rgba(255, 82, 108, .10);
+        }
+
+        .download-table {
+            color: #4bc9ff;
+            text-decoration: none;
+            font-weight: 900;
+        }
+
+        .empty-history {
+            padding: 26px;
+            text-align: center;
+            color: #526983;
+            font-size: 8px;
+        }
+
+        /* =========================
+           RIGHT PANEL
+        ========================= */
+
+        .account-body {
+            padding: 14px;
+        }
+
+        .profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 13px;
+        }
+
+        .profile-avatar {
+            width: 40px;
+            height: 40px;
+            display: grid;
+            place-items: center;
+            border-radius: 50%;
+            background:
+                linear-gradient(
+                    135deg,
+                    #174278,
+                    #1684ff
+                );
+            font-size: 14px;
+            font-weight: 900;
+        }
+
+        .profile-name {
+            font-size: 10px;
+            font-weight: 900;
+        }
+
+        .profile-email {
+            max-width: 180px;
+            color: #5f748e;
+            font-size: 7px;
+            margin-top: 3px;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
         }
 
-        .status-success {
-            color: #53d999;
-        }
-
-        .empty-history {
-            padding: 28px;
-            text-align: center;
-            color: #53637a;
-            font-size: 10px;
-        }
-
-        /* RIGHT */
-
-        .account-card {
-            padding: 17px;
-        }
-
-        .profile-top {
-            display: flex;
-            align-items: center;
-            gap: 11px;
-            margin-bottom: 16px;
-        }
-
-        .big-avatar {
-            width: 42px;
-            height: 42px;
-            border-radius: 50%;
-            display: grid;
-            place-items: center;
-            background: linear-gradient(135deg,#123a68,#168cff);
-            font-weight: 900;
-        }
-
-        .profile-name {
-            font-size: 12px;
-            font-weight: 900;
-        }
-
-        .profile-email {
-            color: #617089;
-            font-size: 9px;
-            margin-top: 3px;
-            word-break: break-all;
-        }
-
         .info-row {
-            min-height: 42px;
-            border-top: 1px solid #172338;
+            min-height: 39px;
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 10px;
-            font-size: 10px;
+            border-top: 1px solid #172a43;
+            font-size: 8px;
         }
 
         .info-label {
-            color: #62728a;
+            color: #637891;
         }
 
         .badge {
             display: inline-flex;
             align-items: center;
-            padding: 4px 8px;
+            padding: 4px 7px;
             border-radius: 20px;
-            font-size: 9px;
+            font-size: 7px;
             font-weight: 900;
         }
 
-        .badge-pro {
-            color: #55ceff;
-            background: rgba(20,120,255,.12);
-            border: 1px solid rgba(20,120,255,.3);
+        .badge-free {
+            color: #c1cbd8;
+            border: 1px solid #2a405b;
+            background: #122033;
         }
 
-        .badge-free {
-            color: #b1bdcc;
-            background: rgba(148,163,184,.08);
-            border: 1px solid rgba(148,163,184,.18);
+        .badge-pro {
+            color: #67d7ff;
+            border: 1px solid rgba(20, 120, 255, .3);
+            background: rgba(20, 120, 255, .12);
         }
 
         .badge-active {
-            color: #61dfa4;
-            background: rgba(37,208,127,.08);
+            color: #62e5a9;
+            background: rgba(36, 209, 139, .09);
         }
 
         .badge-admin {
-            color: #ffc56b;
-            background: rgba(255,159,67,.09);
+            color: #ffc66d;
+            background: rgba(255, 178, 63, .09);
         }
 
-        .quick-actions {
-            padding: 14px 17px 17px;
+        .quick-body {
+            padding: 11px 14px 14px;
         }
 
-        .action-link,
-        .logout-full {
+        .quick-link,
+        .logout-button {
             width: 100%;
-            min-height: 40px;
+            min-height: 36px;
             display: flex;
             align-items: center;
-            gap: 10px;
-            padding: 0 12px;
-            border-radius: 8px;
-            border: 1px solid #1b2a40;
-            background: #0a1321;
-            color: #91a0b4;
+            gap: 8px;
+            padding: 0 10px;
+            margin-top: 7px;
+            border-radius: 7px;
+            border: 1px solid #1b314d;
+            background: #091522;
+            color: #93a4b8;
             text-decoration: none;
-            margin-top: 8px;
-            font-size: 10px;
+            font-size: 8px;
             font-weight: 800;
         }
 
-        .action-link:hover {
-            border-color: #176cc3;
+        .quick-link:hover {
+            border-color: #1d70c8;
             color: white;
         }
 
-        .logout-full {
-            color: #ff8396;
-            border-color: rgba(255,85,112,.18);
+        .logout-button {
+            color: #ff8193;
+            border-color: rgba(255, 82, 108, .22);
         }
 
-        /* ADMIN */
+        .activity-list {
+            padding: 7px 14px 13px;
+        }
+
+        .activity-item {
+            min-height: 36px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px solid #14263c;
+            color: #8092a9;
+            font-size: 7px;
+        }
+
+        .activity-item:last-child {
+            border-bottom: 0;
+        }
+
+        .activity-dot {
+            width: 6px;
+            height: 6px;
+            flex: 0 0 6px;
+            border-radius: 50%;
+            background: #24d18b;
+        }
+
+        /* =========================
+           ADMIN
+        ========================= */
 
         .admin-tools {
             display: flex;
-            gap: 10px;
-            padding: 15px;
-            border-bottom: 1px solid #18253a;
+            gap: 8px;
+            padding: 13px;
+            border-bottom: 1px solid #172a43;
         }
 
         .admin-tools input,
         .admin-tools select {
-            height: 39px;
-            padding: 0 12px;
-            border-radius: 8px;
-            background: #08111e;
-            border: 1px solid #1b2a40;
+            height: 36px;
+            padding: 0 10px;
+            border-radius: 7px;
+            background: #081321;
+            border: 1px solid #1b314d;
             color: white;
             outline: none;
-            font-size: 10px;
+            font-size: 8px;
         }
 
         .admin-tools input {
             flex: 1;
         }
 
-        .table-wrap {
+        .admin-table-wrap {
             overflow-x: auto;
         }
 
@@ -832,19 +1209,19 @@
         .admin-table th,
         .admin-table td {
             text-align: left;
-            padding: 12px 14px;
-            border-bottom: 1px solid #162236;
-            font-size: 10px;
+            padding: 11px 12px;
+            border-bottom: 1px solid #16283f;
+            font-size: 8px;
         }
 
         .admin-table th {
-            color: #596a82;
-            font-size: 9px;
+            color: #60758e;
+            font-size: 7px;
         }
 
         .user-email {
-            color: #5f7088;
-            font-size: 9px;
+            color: #5e738d;
+            font-size: 7px;
             margin-top: 3px;
         }
 
@@ -855,13 +1232,13 @@
         }
 
         .small-btn {
-            padding: 6px 8px;
+            padding: 5px 7px;
             border-radius: 6px;
-            background: #101b2b;
-            border: 1px solid #22344d;
-            color: #b4c0d0;
-            font-size: 9px;
-            font-weight: 800;
+            background: #101d2e;
+            border: 1px solid #223b59;
+            color: #b7c3d1;
+            font-size: 7px;
+            font-weight: 900;
         }
 
         .small-btn.danger {
@@ -876,15 +1253,38 @@
             display: none;
         }
 
-        /* RESPONSIVE */
+        /* =========================
+           RESPONSIVE
+        ========================= */
 
-        @media (max-width: 1050px) {
+        @media (max-width: 1250px) {
             .stats-grid {
-                grid-template-columns: repeat(2,1fr);
+                grid-template-columns:
+                    repeat(3, minmax(0, 1fr));
             }
 
-            .dashboard-grid {
+            .dashboard-layout {
                 grid-template-columns: 1fr;
+            }
+
+            .right-column {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 14px;
+            }
+
+            .right-column .panel {
+                margin-top: 0;
+            }
+        }
+
+        @media (max-width: 980px) {
+            .analytics-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .ratio-content {
+                justify-content: center;
             }
         }
 
@@ -892,7 +1292,7 @@
             .sidebar {
                 transform: translateX(-100%);
                 transition: .25s;
-                box-shadow: 20px 0 50px rgba(0,0,0,.4);
+                box-shadow: 20px 0 50px rgba(0, 0, 0, .45);
             }
 
             .sidebar.open {
@@ -903,7 +1303,7 @@
                 position: fixed;
                 inset: 0;
                 z-index: 90;
-                background: rgba(0,0,0,.55);
+                background: rgba(0, 0, 0, .6);
             }
 
             .sidebar-overlay.show {
@@ -920,40 +1320,51 @@
             }
 
             .topbar {
-                padding: 0 13px;
+                padding: 0 12px;
             }
 
-            .page-name {
+            .page-title {
                 display: none;
             }
 
-            .online {
+            .system-online {
                 display: none;
             }
 
             .content {
-                padding: 16px 12px 35px;
-            }
-
-            .welcome h1 {
-                font-size: 20px;
+                padding: 14px 11px 30px;
             }
 
             .stats-grid {
-                gap: 9px;
+                grid-template-columns:
+                    repeat(2, minmax(0, 1fr));
+                gap: 8px;
             }
 
             .stat-card {
-                min-height: 88px;
-                padding: 14px;
+                min-height: 100px;
+                padding: 12px;
             }
 
-            .stat-number {
-                font-size: 19px;
+            .stat-value {
+                font-size: 21px;
             }
 
-            .drop-zone {
-                min-height: 175px;
+            .analytics-grid {
+                gap: 10px;
+            }
+
+            .right-column {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .right-column .panel + .panel {
+                margin-top: 0;
+            }
+
+            .video-toolbar {
+                display: none;
             }
 
             .admin-tools {
@@ -968,7 +1379,11 @@
 
         @media (max-width: 430px) {
             .auth-box {
-                padding: 26px 20px;
+                padding: 25px 19px;
+            }
+
+            .welcome h1 {
+                font-size: 19px;
             }
 
             .stats-grid {
@@ -979,8 +1394,20 @@
                 display: none;
             }
 
-            .user-chip-name {
-                max-width: 85px;
+            .stat-card {
+                min-height: 92px;
+            }
+
+            .ratio-content {
+                flex-direction: column;
+            }
+
+            .ratio-list {
+                width: 100%;
+            }
+
+            .chip-name {
+                max-width: 75px;
                 overflow: hidden;
                 text-overflow: ellipsis;
             }
@@ -994,13 +1421,12 @@
 
 {% if not logged_in %}
 
-<!-- =========================
-     AUTH
-========================= -->
-
 <div class="auth-screen">
 
-    <div class="auth-box" id="loginScreen">
+    <div
+        class="auth-box"
+        id="loginScreen"
+    >
 
         <div class="auth-logo">
             REUP <span>NVL VIP</span>
@@ -1030,6 +1456,7 @@
             method="POST"
             action="{{ url_for('login') }}"
         >
+
             <div class="input-group">
                 <label>TÀI KHOẢN HOẶC EMAIL</label>
 
@@ -1055,11 +1482,12 @@
             </div>
 
             <button
-                type="submit"
                 class="auth-btn"
+                type="submit"
             >
                 ĐĂNG NHẬP
             </button>
+
         </form>
 
         <div class="switch-auth">
@@ -1082,7 +1510,7 @@
         </div>
 
         <div class="auth-sub">
-            Tạo tài khoản mới
+            Tạo tài khoản REUP NVL VIP
         </div>
 
         <div class="auth-title">
@@ -1147,11 +1575,12 @@
             </div>
 
             <button
-                type="submit"
                 class="auth-btn"
+                type="submit"
             >
                 TẠO TÀI KHOẢN
             </button>
+
         </form>
 
         <div class="switch-auth">
@@ -1167,10 +1596,6 @@
 
 {% else %}
 
-<!-- =========================
-     LOGGED APP
-========================= -->
-
 <div class="app-shell">
 
     <div
@@ -1184,46 +1609,44 @@
     >
 
         <div class="brand">
-            <div class="brand-icon">R</div>
 
-            <div class="brand-text">
-                REUP NVL VIP
+            <div class="brand-icon">
+                R
             </div>
+
+            <div>
+                <div class="brand-name">
+                    REUP NVL VIP
+                </div>
+
+                <div class="brand-sub">
+                    VIDEO REUP TOOL
+                </div>
+            </div>
+
         </div>
+
 
         <div class="sidebar-menu">
 
             <div class="menu-label">
-                MENU
+                TỔNG QUAN
             </div>
 
-            {% if admin_page %}
-
             <a
                 href="{{ url_for('index') }}"
-                class="menu-item"
+                class="menu-item {% if not admin_page %}active{% endif %}"
             >
                 <span class="menu-icon">⌂</span>
                 Dashboard
             </a>
 
-            <a
-                href="{{ url_for('admin') }}"
-                class="menu-item active"
-            >
-                <span class="menu-icon">♛</span>
-                Quản lý User
-            </a>
 
-            {% else %}
+            {% if not admin_page %}
 
-            <a
-                href="{{ url_for('index') }}"
-                class="menu-item active"
-            >
-                <span class="menu-icon">⌂</span>
-                Dashboard
-            </a>
+            <div class="menu-label">
+                VIDEO
+            </div>
 
             <button
                 type="button"
@@ -1240,41 +1663,49 @@
                 onclick="scrollToHistory()"
             >
                 <span class="menu-icon">▤</span>
-                Lịch sử
+                Danh sách video
             </button>
+
+            {% endif %}
+
 
             {% if current_user and current_user.role == "Admin" %}
 
+            <div class="menu-label">
+                QUẢN TRỊ
+            </div>
+
             <a
                 href="{{ url_for('admin') }}"
-                class="menu-item"
+                class="menu-item {% if admin_page %}active{% endif %}"
             >
                 <span class="menu-icon">♛</span>
-                Admin Panel
+                Quản lý User
             </a>
-
-            {% endif %}
 
             {% endif %}
 
         </div>
 
+
         <div class="sidebar-bottom">
 
             {% if current_user %}
 
-            <div class="side-plan">
-                <div class="side-plan-title">
+            <div class="pro-box">
+
+                <div class="pro-box-label">
                     GÓI TÀI KHOẢN
                 </div>
 
-                <div class="side-plan-value">
+                <div class="pro-box-value">
                     {% if current_user.plan == "Pro" %}
                         💎 PRO MEMBER
                     {% else %}
                         FREE MEMBER
                     {% endif %}
                 </div>
+
             </div>
 
             {% endif %}
@@ -1299,34 +1730,33 @@
 
     <div class="main-area">
 
-        <!-- TOPBAR -->
-
         <header class="topbar">
 
-            <div style="display:flex;align-items:center;gap:12px;">
+            <div class="top-left">
 
                 <button
+                    type="button"
                     class="mobile-menu"
                     id="mobileMenu"
-                    type="button"
                 >
                     ☰
                 </button>
 
-                <div class="page-name">
+                <div class="page-title">
                     {% if admin_page %}
-                        Admin Panel
+                        Quản lý tài khoản
                     {% else %}
-                        Dashboard
+                        REUP NVL VIP Dashboard
                     {% endif %}
                 </div>
 
             </div>
 
+
             <div class="top-right">
 
-                <div class="online">
-                    ● Hệ thống hoạt động
+                <div class="system-online">
+                    ● Hệ thống hoạt động ổn định
                 </div>
 
                 {% if current_user %}
@@ -1338,11 +1768,11 @@
                     </div>
 
                     <div>
-                        <div class="user-chip-name">
+                        <div class="chip-name">
                             {{ current_user.username }}
                         </div>
 
-                        <div class="user-chip-plan">
+                        <div class="chip-plan">
                             {{ current_user.plan }}
                         </div>
                     </div>
@@ -1360,66 +1790,103 @@
 
         {% if admin_page and current_user and current_user.role == "Admin" %}
 
-            <!-- =========================
-                 ADMIN
-            ========================= -->
-
-            <div class="welcome">
-                <h1>Admin Dashboard</h1>
-                <p>Quản lý tài khoản REUP NVL VIP</p>
-            </div>
-
             {% set total_users = users|length %}
 
             {% set pro_users =
                 users
-                |selectattr("plan","equalto","Pro")
+                |selectattr("plan", "equalto", "Pro")
                 |list
                 |length
             %}
 
             {% set free_users =
                 users
-                |selectattr("plan","equalto","Free")
+                |selectattr("plan", "equalto", "Free")
                 |list
                 |length
             %}
 
             {% set banned_users =
                 users
-                |selectattr("status","equalto","Banned")
+                |selectattr("status", "equalto", "Banned")
                 |list
                 |length
             %}
 
-            <div class="stats-grid">
+            <div class="welcome">
+                <h1>Admin Dashboard</h1>
+                <p>
+                    Quản lý người dùng REUP NVL VIP
+                </p>
+            </div>
+
+
+            <div
+                class="stats-grid"
+                style="grid-template-columns:repeat(4,minmax(0,1fr));"
+            >
 
                 <div class="stat-card">
-                    <div class="stat-icon">👥</div>
-                    <div class="stat-label">TỔNG USER</div>
-                    <div class="stat-number">{{ total_users }}</div>
-                    <div class="stat-note">Tài khoản hệ thống</div>
+                    <div class="stat-top">
+                        <div class="stat-icon icon-blue">👥</div>
+                        <div class="stat-label">TỔNG USER</div>
+                    </div>
+
+                    <div class="stat-value">
+                        {{ total_users }}
+                    </div>
+
+                    <div class="stat-note">
+                        Tài khoản hệ thống
+                    </div>
                 </div>
 
-                <div class="stat-card">
-                    <div class="stat-icon">💎</div>
-                    <div class="stat-label">PRO</div>
-                    <div class="stat-number">{{ pro_users }}</div>
-                    <div class="stat-note">Thành viên Pro</div>
-                </div>
 
                 <div class="stat-card">
-                    <div class="stat-icon">👤</div>
-                    <div class="stat-label">FREE</div>
-                    <div class="stat-number">{{ free_users }}</div>
-                    <div class="stat-note">Thành viên Free</div>
+                    <div class="stat-top">
+                        <div class="stat-icon icon-purple">💎</div>
+                        <div class="stat-label">PRO</div>
+                    </div>
+
+                    <div class="stat-value">
+                        {{ pro_users }}
+                    </div>
+
+                    <div class="stat-note">
+                        Thành viên Pro
+                    </div>
                 </div>
 
+
                 <div class="stat-card">
-                    <div class="stat-icon">⛔</div>
-                    <div class="stat-label">BANNED</div>
-                    <div class="stat-number">{{ banned_users }}</div>
-                    <div class="stat-note">Tài khoản bị khóa</div>
+                    <div class="stat-top">
+                        <div class="stat-icon icon-green">👤</div>
+                        <div class="stat-label">FREE</div>
+                    </div>
+
+                    <div class="stat-value">
+                        {{ free_users }}
+                    </div>
+
+                    <div class="stat-note">
+                        Thành viên Free
+                    </div>
+                </div>
+
+
+                <div class="stat-card">
+                    <div class="stat-top">
+                        <div class="stat-icon icon-red">!</div>
+                        <div class="stat-label">BANNED</div>
+                    </div>
+
+                    <div class="stat-value">
+                        {{ banned_users }}
+                    </div>
+
+                    <div class="stat-note">
+                        Tài khoản bị khóa
+                    </div>
                 </div>
 
             </div>
@@ -1428,14 +1895,17 @@
             <section class="panel">
 
                 <div class="panel-head">
+
                     <div class="panel-title">
-                        Quản lý tài khoản
+                        Danh sách tài khoản
                     </div>
 
                     <div class="panel-sub">
-                        {{ total_users }} user
+                        {{ total_users }} tài khoản
                     </div>
+
                 </div>
+
 
                 <div class="admin-tools">
 
@@ -1446,20 +1916,37 @@
                     >
 
                     <select id="planFilter">
-                        <option value="all">Tất cả gói</option>
-                        <option value="Free">Free</option>
-                        <option value="Pro">Pro</option>
+                        <option value="all">
+                            Tất cả gói
+                        </option>
+
+                        <option value="Free">
+                            Free
+                        </option>
+
+                        <option value="Pro">
+                            Pro
+                        </option>
                     </select>
 
                     <select id="statusFilter">
-                        <option value="all">Tất cả trạng thái</option>
-                        <option value="Active">Active</option>
-                        <option value="Banned">Banned</option>
+                        <option value="all">
+                            Tất cả trạng thái
+                        </option>
+
+                        <option value="Active">
+                            Active
+                        </option>
+
+                        <option value="Banned">
+                            Banned
+                        </option>
                     </select>
 
                 </div>
 
-                <div class="table-wrap">
+
+                <div class="admin-table-wrap">
 
                     <table class="admin-table">
 
@@ -1486,10 +1973,15 @@
                             data-status="{{ user.status }}"
                         >
 
-                            <td>#{{ user.id }}</td>
+                            <td>
+                                #{{ user.id }}
+                            </td>
 
                             <td>
-                                <strong>{{ user.username }}</strong>
+                                <strong>
+                                    {{ user.username }}
+                                </strong>
+
                                 <div class="user-email">
                                     {{ user.email }}
                                 </div>
@@ -1497,38 +1989,38 @@
 
                             <td>
                                 {% if user.plan == "Pro" %}
-                                    <span class="badge badge-pro">
-                                        PRO
-                                    </span>
+                                <span class="badge badge-pro">
+                                    PRO
+                                </span>
                                 {% else %}
-                                    <span class="badge badge-free">
-                                        FREE
-                                    </span>
+                                <span class="badge badge-free">
+                                    FREE
+                                </span>
                                 {% endif %}
                             </td>
 
                             <td>
                                 {% if user.role == "Admin" %}
-                                    <span class="badge badge-admin">
-                                        ADMIN
-                                    </span>
+                                <span class="badge badge-admin">
+                                    ADMIN
+                                </span>
                                 {% else %}
-                                    USER
+                                USER
                                 {% endif %}
                             </td>
 
                             <td>
                                 {% if user.status == "Active" %}
-                                    <span class="badge badge-active">
-                                        ● ACTIVE
-                                    </span>
+                                <span class="badge badge-active">
+                                    ● ACTIVE
+                                </span>
                                 {% else %}
-                                    <span
-                                        class="badge"
-                                        style="color:#ff7389;"
-                                    >
-                                        ● BANNED
-                                    </span>
+                                <span
+                                    class="badge"
+                                    style="color:#ff8294;"
+                                >
+                                    ● BANNED
+                                </span>
                                 {% endif %}
                             </td>
 
@@ -1666,11 +2158,7 @@
 
         {% else %}
 
-            <!-- =========================
-                 USER DASHBOARD
-            ========================= -->
-
-            {% if current_user %}
+        {% if current_user %}
 
             <div class="welcome">
 
@@ -1679,78 +2167,472 @@
                 </h1>
 
                 <p>
-                    Tổng quan hệ thống REUP NVL VIP
+                    Tổng quan hoạt động REUP NVL VIP
                 </p>
 
             </div>
 
 
+            <!-- STAT CARDS -->
+
             <div class="stats-grid">
 
                 <div class="stat-card">
-                    <div class="stat-icon">🎬</div>
-                    <div class="stat-label">VIDEO TRONG PHIÊN</div>
+
+                    <div class="stat-top">
+                        <div class="stat-icon icon-blue">
+                            ↓
+                        </div>
+
+                        <div class="stat-label">
+                            TỔNG VIDEO
+                        </div>
+                    </div>
+
                     <div
-                        class="stat-number"
+                        class="stat-value"
                         id="totalVideos"
                     >
                         0
                     </div>
+
                     <div class="stat-note">
-                        Video đã upload
+                        Video trong phiên
                     </div>
+
                 </div>
 
+
                 <div class="stat-card">
-                    <div class="stat-icon">✓</div>
-                    <div class="stat-label">THÀNH CÔNG</div>
+
+                    <div class="stat-top">
+                        <div class="stat-icon icon-purple">
+                            ⚙
+                        </div>
+
+                        <div class="stat-label">
+                            ĐANG XỬ LÝ
+                        </div>
+                    </div>
+
                     <div
-                        class="stat-number"
+                        class="stat-value"
+                        id="processingVideos"
+                    >
+                        0
+                    </div>
+
+                    <div class="stat-note">
+                        Video đang chạy
+                    </div>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <div class="stat-top">
+                        <div class="stat-icon icon-green">
+                            ✓
+                        </div>
+
+                        <div class="stat-label">
+                            ĐÃ XỬ LÝ
+                        </div>
+                    </div>
+
+                    <div
+                        class="stat-value"
                         id="successVideos"
                     >
                         0
                     </div>
+
                     <div class="stat-note">
-                        Xử lý hoàn tất
+                        Sẵn sàng tải
                     </div>
+
                 </div>
 
-                <div class="stat-card">
-                    <div class="stat-icon">⚡</div>
-                    <div class="stat-label">TRẠNG THÁI</div>
-                    <div
-                        class="stat-number"
-                        style="font-size:16px;color:#4edb9b;"
-                    >
-                        ONLINE
-                    </div>
-                    <div class="stat-note">
-                        Máy chủ đang hoạt động
-                    </div>
-                </div>
 
                 <div class="stat-card">
-                    <div class="stat-icon">💎</div>
-                    <div class="stat-label">GÓI HIỆN TẠI</div>
+
+                    <div class="stat-top">
+                        <div class="stat-icon icon-pink">
+                            ◆
+                        </div>
+
+                        <div class="stat-label">
+                            HOÀN TẤT
+                        </div>
+                    </div>
+
                     <div
-                        class="stat-number"
-                        style="font-size:18px;"
+                        class="stat-value"
+                        id="completedVideos"
                     >
-                        {{ current_user.plan|upper }}
+                        0
                     </div>
+
                     <div class="stat-note">
-                        REUP NVL VIP
+                        Xử lý thành công
                     </div>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <div class="stat-top">
+                        <div class="stat-icon icon-red">
+                            !
+                        </div>
+
+                        <div class="stat-label">
+                            LỖI
+                        </div>
+                    </div>
+
+                    <div
+                        class="stat-value"
+                        id="errorVideos"
+                    >
+                        0
+                    </div>
+
+                    <div class="stat-note">
+                        Cần kiểm tra
+                    </div>
+
                 </div>
 
             </div>
 
 
-            <div class="dashboard-grid">
+            <div class="dashboard-layout">
 
-                <!-- LEFT -->
+                <!-- =========================
+                     MAIN LEFT
+                ========================= -->
 
                 <div>
+
+                    <div class="analytics-grid">
+
+                        <!-- BAR CHART -->
+
+                        <section class="panel">
+
+                            <div class="panel-head">
+
+                                <div class="panel-title">
+                                    Biểu đồ xử lý video
+                                </div>
+
+                                <div class="panel-sub">
+                                    Phiên hiện tại
+                                </div>
+
+                            </div>
+
+
+                            <div class="chart-body">
+
+                                <div class="chart-legend">
+
+                                    <span>
+                                        <i
+                                            class="legend-dot"
+                                            style="background:#1684ff;"
+                                        ></i>
+                                        Đã tải
+                                    </span>
+
+                                    <span>
+                                        <i
+                                            class="legend-dot"
+                                            style="background:#8b5cf6;"
+                                        ></i>
+                                        Đang xử lý
+                                    </span>
+
+                                    <span>
+                                        <i
+                                            class="legend-dot"
+                                            style="background:#24d18b;"
+                                        ></i>
+                                        Thành công
+                                    </span>
+
+                                    <span>
+                                        <i
+                                            class="legend-dot"
+                                            style="background:#ff526c;"
+                                        ></i>
+                                        Lỗi
+                                    </span>
+
+                                </div>
+
+
+                                <div
+                                    class="bar-chart"
+                                    id="barChart"
+                                >
+
+                                    <div class="bar-group">
+                                        <div
+                                            class="bar bar-blue"
+                                            id="barUpload"
+                                            style="height:3%;"
+                                        ></div>
+
+                                        <div
+                                            class="bar bar-purple"
+                                            id="barProcessing"
+                                            style="height:3%;"
+                                        ></div>
+
+                                        <div
+                                            class="bar bar-green"
+                                            id="barSuccess"
+                                            style="height:3%;"
+                                        ></div>
+
+                                        <div
+                                            class="bar bar-red"
+                                            id="barError"
+                                            style="height:3%;"
+                                        ></div>
+
+                                        <div class="bar-label">
+                                            Hiện tại
+                                        </div>
+                                    </div>
+
+
+                                    <div class="bar-group">
+                                        <div
+                                            class="bar bar-blue"
+                                            style="height:3%;opacity:.25;"
+                                        ></div>
+
+                                        <div
+                                            class="bar bar-purple"
+                                            style="height:3%;opacity:.25;"
+                                        ></div>
+
+                                        <div
+                                            class="bar bar-green"
+                                            style="height:3%;opacity:.25;"
+                                        ></div>
+
+                                        <div
+                                            class="bar bar-red"
+                                            style="height:3%;opacity:.25;"
+                                        ></div>
+
+                                        <div class="bar-label">
+                                            —
+                                        </div>
+                                    </div>
+
+
+                                    <div class="bar-group">
+                                        <div
+                                            class="bar bar-blue"
+                                            style="height:3%;opacity:.18;"
+                                        ></div>
+
+                                        <div
+                                            class="bar bar-purple"
+                                            style="height:3%;opacity:.18;"
+                                        ></div>
+
+                                        <div
+                                            class="bar bar-green"
+                                            style="height:3%;opacity:.18;"
+                                        ></div>
+
+                                        <div
+                                            class="bar bar-red"
+                                            style="height:3%;opacity:.18;"
+                                        ></div>
+
+                                        <div class="bar-label">
+                                            —
+                                        </div>
+                                    </div>
+
+
+                                    <div class="bar-group">
+                                        <div
+                                            class="bar bar-blue"
+                                            style="height:3%;opacity:.12;"
+                                        ></div>
+
+                                        <div
+                                            class="bar bar-purple"
+                                            style="height:3%;opacity:.12;"
+                                        ></div>
+
+                                        <div
+                                            class="bar bar-green"
+                                            style="height:3%;opacity:.12;"
+                                        ></div>
+
+                                        <div
+                                            class="bar bar-red"
+                                            style="height:3%;opacity:.12;"
+                                        ></div>
+
+                                        <div class="bar-label">
+                                            —
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                                <div class="chart-footer-space"></div>
+
+                            </div>
+
+                        </section>
+
+
+                        <!-- DONUT -->
+
+                        <section class="panel">
+
+                            <div class="panel-head">
+
+                                <div class="panel-title">
+                                    Tỷ lệ trạng thái video
+                                </div>
+
+                            </div>
+
+
+                            <div class="ratio-body">
+
+                                <div class="ratio-content">
+
+                                    <div
+                                        class="donut"
+                                        id="statusDonut"
+                                    >
+
+                                        <div class="donut-center">
+
+                                            <div
+                                                class="donut-number"
+                                                id="donutTotal"
+                                            >
+                                                0
+                                            </div>
+
+                                            <div class="donut-label">
+                                                Tổng video
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+
+                                    <div class="ratio-list">
+
+                                        <div class="ratio-row">
+
+                                            <span class="ratio-name">
+                                                <i
+                                                    class="legend-dot"
+                                                    style="background:#1684ff;"
+                                                ></i>
+                                                Đã tải
+                                            </span>
+
+                                            <span
+                                                class="ratio-value"
+                                                id="ratioUploaded"
+                                            >
+                                                0
+                                            </span>
+
+                                        </div>
+
+
+                                        <div class="ratio-row">
+
+                                            <span class="ratio-name">
+                                                <i
+                                                    class="legend-dot"
+                                                    style="background:#8b5cf6;"
+                                                ></i>
+                                                Đang xử lý
+                                            </span>
+
+                                            <span
+                                                class="ratio-value"
+                                                id="ratioProcessing"
+                                            >
+                                                0
+                                            </span>
+
+                                        </div>
+
+
+                                        <div class="ratio-row">
+
+                                            <span class="ratio-name">
+                                                <i
+                                                    class="legend-dot"
+                                                    style="background:#24d18b;"
+                                                ></i>
+                                                Thành công
+                                            </span>
+
+                                            <span
+                                                class="ratio-value"
+                                                id="ratioSuccess"
+                                            >
+                                                0
+                                            </span>
+
+                                        </div>
+
+
+                                        <div class="ratio-row">
+
+                                            <span class="ratio-name">
+                                                <i
+                                                    class="legend-dot"
+                                                    style="background:#ff526c;"
+                                                ></i>
+                                                Lỗi
+                                            </span>
+
+                                            <span
+                                                class="ratio-value"
+                                                id="ratioError"
+                                            >
+                                                0
+                                            </span>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </section>
+
+                    </div>
+
+
+                    <!-- UPLOAD -->
 
                     <section
                         class="panel"
@@ -1758,6 +2640,7 @@
                     >
 
                         <div class="panel-head">
+
                             <div class="panel-title">
                                 🎬 Reup Video
                             </div>
@@ -1765,7 +2648,9 @@
                             <div class="panel-sub">
                                 Tối đa 500 MB
                             </div>
+
                         </div>
+
 
                         <div class="upload-body">
 
@@ -1779,7 +2664,7 @@
                                     <div>
 
                                         <div class="upload-icon">
-                                            ☁️
+                                            ☁
                                         </div>
 
                                         <div class="upload-title">
@@ -1787,7 +2672,8 @@
                                         </div>
 
                                         <div class="upload-help">
-                                            hoặc chọn video từ thiết bị<br>
+                                            hoặc chọn video từ thiết bị
+                                            <br>
                                             MP4 · MOV · AVI · MKV · WEBM · M4V
                                         </div>
 
@@ -1805,6 +2691,7 @@
                                             name="video"
                                             accept=".mp4,.mov,.avi,.mkv,.webm,.m4v"
                                         >
+
 
                                         <div
                                             class="selected-file"
@@ -1835,6 +2722,7 @@
 
                                 </div>
 
+
                                 <div
                                     class="upload-status"
                                     id="uploadStatus"
@@ -1855,6 +2743,8 @@
                     </section>
 
 
+                    <!-- VIDEO LIST -->
+
                     <section
                         class="panel"
                         id="historySection"
@@ -1863,14 +2753,22 @@
                         <div class="panel-head">
 
                             <div class="panel-title">
-                                Lịch sử phiên hiện tại
+                                ◉ Danh sách video
                             </div>
 
-                            <div class="panel-sub">
-                                Video vừa xử lý
+                            <div class="video-toolbar">
+
+                                <input
+                                    type="text"
+                                    class="table-search"
+                                    id="videoSearch"
+                                    placeholder="Tìm video..."
+                                >
+
                             </div>
 
                         </div>
+
 
                         <div
                             class="empty-history"
@@ -1879,8 +2777,9 @@
                             Chưa có video nào trong phiên này.
                         </div>
 
+
                         <div
-                            class="table-wrap hidden"
+                            class="video-table-wrap hidden"
                             id="historyTableWrap"
                         >
 
@@ -1888,10 +2787,12 @@
 
                                 <thead>
                                     <tr>
+                                        <th>#</th>
                                         <th>VIDEO</th>
                                         <th>DUNG LƯỢNG</th>
                                         <th>TRẠNG THÁI</th>
-                                        <th>TẢI</th>
+                                        <th>THỜI GIAN</th>
+                                        <th>THAO TÁC</th>
                                     </tr>
                                 </thead>
 
@@ -1906,27 +2807,33 @@
                 </div>
 
 
-                <!-- RIGHT -->
+                <!-- =========================
+                     RIGHT COLUMN
+                ========================= -->
 
-                <div>
+                <div class="right-column">
 
                     <section class="panel">
 
                         <div class="panel-head">
+
                             <div class="panel-title">
                                 Tài khoản
                             </div>
+
                         </div>
 
-                        <div class="account-card">
 
-                            <div class="profile-top">
+                        <div class="account-body">
 
-                                <div class="big-avatar">
+                            <div class="profile">
+
+                                <div class="profile-avatar">
                                     {{ current_user.username[0]|upper }}
                                 </div>
 
                                 <div>
+
                                     <div class="profile-name">
                                         {{ current_user.username }}
                                     </div>
@@ -1934,29 +2841,37 @@
                                     <div class="profile-email">
                                         {{ current_user.email }}
                                     </div>
+
                                 </div>
 
                             </div>
 
 
                             <div class="info-row">
+
                                 <span class="info-label">
                                     Gói
                                 </span>
 
                                 {% if current_user.plan == "Pro" %}
+
                                 <span class="badge badge-pro">
                                     💎 PRO
                                 </span>
+
                                 {% else %}
+
                                 <span class="badge badge-free">
                                     FREE
                                 </span>
+
                                 {% endif %}
+
                             </div>
 
 
                             <div class="info-row">
+
                                 <span class="info-label">
                                     Trạng thái
                                 </span>
@@ -1964,23 +2879,30 @@
                                 <span class="badge badge-active">
                                     ● ACTIVE
                                 </span>
+
                             </div>
 
 
                             <div class="info-row">
+
                                 <span class="info-label">
                                     Quyền
                                 </span>
 
                                 {% if current_user.role == "Admin" %}
+
                                 <span class="badge badge-admin">
                                     ADMIN
                                 </span>
+
                                 {% else %}
+
                                 <span>
                                     USER
                                 </span>
+
                                 {% endif %}
+
                             </div>
 
                         </div>
@@ -1991,34 +2913,37 @@
                     <section class="panel">
 
                         <div class="panel-head">
+
                             <div class="panel-title">
                                 Truy cập nhanh
                             </div>
+
                         </div>
 
-                        <div class="quick-actions">
+
+                        <div class="quick-body">
 
                             <button
                                 type="button"
-                                class="action-link"
+                                class="quick-link"
                                 onclick="scrollToUpload()"
                             >
-                                🎬 Upload video mới
+                                ⇧ Upload video mới
                             </button>
 
                             <button
                                 type="button"
-                                class="action-link"
+                                class="quick-link"
                                 onclick="scrollToHistory()"
                             >
-                                ▤ Xem lịch sử phiên
+                                ▤ Danh sách video
                             </button>
 
                             {% if current_user.role == "Admin" %}
 
                             <a
                                 href="{{ url_for('admin') }}"
-                                class="action-link"
+                                class="quick-link"
                             >
                                 ♛ Mở Admin Panel
                             </a>
@@ -2029,13 +2954,46 @@
                                 method="POST"
                                 action="{{ url_for('logout') }}"
                             >
+
                                 <button
                                     type="submit"
-                                    class="logout-full"
+                                    class="logout-button"
                                 >
                                     ↪ Đăng xuất
                                 </button>
+
                             </form>
+
+                        </div>
+
+                    </section>
+
+
+                    <section class="panel">
+
+                        <div class="panel-head">
+
+                            <div class="panel-title">
+                                Nhật ký hoạt động
+                            </div>
+
+                        </div>
+
+
+                        <div
+                            class="activity-list"
+                            id="activityList"
+                        >
+
+                            <div class="activity-item">
+
+                                <span class="activity-dot"></span>
+
+                                <span>
+                                    Hệ thống đã sẵn sàng
+                                </span>
+
+                            </div>
 
                         </div>
 
@@ -2045,7 +3003,7 @@
 
             </div>
 
-            {% endif %}
+        {% endif %}
 
         {% endif %}
 
@@ -2065,75 +3023,111 @@
 
     function showRegister() {
         const login =
-            document.getElementById("loginScreen");
+            document.getElementById(
+                "loginScreen"
+            );
 
         const register =
-            document.getElementById("registerScreen");
+            document.getElementById(
+                "registerScreen"
+            );
 
         if (login) {
-            login.classList.add("hidden");
+            login.classList.add(
+                "hidden"
+            );
         }
 
         if (register) {
-            register.classList.remove("hidden");
+            register.classList.remove(
+                "hidden"
+            );
         }
     }
 
 
     function showLogin() {
         const login =
-            document.getElementById("loginScreen");
+            document.getElementById(
+                "loginScreen"
+            );
 
         const register =
-            document.getElementById("registerScreen");
+            document.getElementById(
+                "registerScreen"
+            );
 
         if (register) {
-            register.classList.add("hidden");
+            register.classList.add(
+                "hidden"
+            );
         }
 
         if (login) {
-            login.classList.remove("hidden");
+            login.classList.remove(
+                "hidden"
+            );
         }
     }
 
 
     /* =========================
-       MOBILE SIDEBAR
+       SIDEBAR
     ========================= */
 
     const sidebar =
-        document.getElementById("sidebar");
+        document.getElementById(
+            "sidebar"
+        );
 
     const mobileMenu =
-        document.getElementById("mobileMenu");
+        document.getElementById(
+            "mobileMenu"
+        );
 
     const sidebarOverlay =
-        document.getElementById("sidebarOverlay");
+        document.getElementById(
+            "sidebarOverlay"
+        );
 
 
     function closeSidebar() {
+
         if (sidebar) {
-            sidebar.classList.remove("open");
+            sidebar.classList.remove(
+                "open"
+            );
         }
 
         if (sidebarOverlay) {
-            sidebarOverlay.classList.remove("show");
+            sidebarOverlay.classList.remove(
+                "show"
+            );
         }
     }
 
 
-    if (mobileMenu) {
+    if (
+        mobileMenu &&
+        sidebar &&
+        sidebarOverlay
+    ) {
+
         mobileMenu.addEventListener(
             "click",
             function() {
-                sidebar.classList.toggle("open");
-                sidebarOverlay.classList.toggle("show");
+
+                sidebar.classList.toggle(
+                    "open"
+                );
+
+                sidebarOverlay.classList.toggle(
+                    "show"
+                );
+
             }
         );
-    }
 
-
-    if (sidebarOverlay) {
         sidebarOverlay.addEventListener(
             "click",
             closeSidebar
@@ -2142,13 +3136,19 @@
 
 
     function scrollToUpload() {
+
         const element =
-            document.getElementById("uploadSection");
+            document.getElementById(
+                "uploadSection"
+            );
 
         if (element) {
+
             element.scrollIntoView({
-                behavior: "smooth"
+                behavior: "smooth",
+                block: "start"
             });
+
         }
 
         closeSidebar();
@@ -2156,16 +3156,367 @@
 
 
     function scrollToHistory() {
+
         const element =
-            document.getElementById("historySection");
+            document.getElementById(
+                "historySection"
+            );
 
         if (element) {
+
             element.scrollIntoView({
-                behavior: "smooth"
+                behavior: "smooth",
+                block: "start"
             });
+
         }
 
         closeSidebar();
+    }
+
+
+    /* =========================
+       SESSION DATA
+    ========================= */
+
+    let sessionTotal = 0;
+    let sessionProcessing = 0;
+    let sessionSuccess = 0;
+    let sessionError = 0;
+
+
+    function updateDashboard() {
+
+        const total =
+            document.getElementById(
+                "totalVideos"
+            );
+
+        const processing =
+            document.getElementById(
+                "processingVideos"
+            );
+
+        const success =
+            document.getElementById(
+                "successVideos"
+            );
+
+        const completed =
+            document.getElementById(
+                "completedVideos"
+            );
+
+        const errors =
+            document.getElementById(
+                "errorVideos"
+            );
+
+        const donutTotal =
+            document.getElementById(
+                "donutTotal"
+            );
+
+
+        if (total) {
+            total.textContent =
+                sessionTotal;
+        }
+
+        if (processing) {
+            processing.textContent =
+                sessionProcessing;
+        }
+
+        if (success) {
+            success.textContent =
+                sessionSuccess;
+        }
+
+        if (completed) {
+            completed.textContent =
+                sessionSuccess;
+        }
+
+        if (errors) {
+            errors.textContent =
+                sessionError;
+        }
+
+        if (donutTotal) {
+            donutTotal.textContent =
+                sessionTotal;
+        }
+
+
+        const ratioUploaded =
+            document.getElementById(
+                "ratioUploaded"
+            );
+
+        const ratioProcessing =
+            document.getElementById(
+                "ratioProcessing"
+            );
+
+        const ratioSuccess =
+            document.getElementById(
+                "ratioSuccess"
+            );
+
+        const ratioError =
+            document.getElementById(
+                "ratioError"
+            );
+
+
+        if (ratioUploaded) {
+            ratioUploaded.textContent =
+                sessionTotal;
+        }
+
+        if (ratioProcessing) {
+            ratioProcessing.textContent =
+                sessionProcessing;
+        }
+
+        if (ratioSuccess) {
+            ratioSuccess.textContent =
+                sessionSuccess;
+        }
+
+        if (ratioError) {
+            ratioError.textContent =
+                sessionError;
+        }
+
+
+        updateBars();
+        updateDonut();
+    }
+
+
+    function updateBars() {
+
+        const max =
+            Math.max(
+                sessionTotal,
+                sessionProcessing,
+                sessionSuccess,
+                sessionError,
+                1
+            );
+
+        const uploadHeight =
+            Math.max(
+                3,
+                sessionTotal / max * 90
+            );
+
+        const processingHeight =
+            Math.max(
+                3,
+                sessionProcessing / max * 90
+            );
+
+        const successHeight =
+            Math.max(
+                3,
+                sessionSuccess / max * 90
+            );
+
+        const errorHeight =
+            Math.max(
+                3,
+                sessionError / max * 90
+            );
+
+
+        const barUpload =
+            document.getElementById(
+                "barUpload"
+            );
+
+        const barProcessing =
+            document.getElementById(
+                "barProcessing"
+            );
+
+        const barSuccess =
+            document.getElementById(
+                "barSuccess"
+            );
+
+        const barError =
+            document.getElementById(
+                "barError"
+            );
+
+
+        if (barUpload) {
+            barUpload.style.height =
+                uploadHeight + "%";
+        }
+
+        if (barProcessing) {
+            barProcessing.style.height =
+                processingHeight + "%";
+        }
+
+        if (barSuccess) {
+            barSuccess.style.height =
+                successHeight + "%";
+        }
+
+        if (barError) {
+            barError.style.height =
+                errorHeight + "%";
+        }
+    }
+
+
+    function updateDonut() {
+
+        const donut =
+            document.getElementById(
+                "statusDonut"
+            );
+
+        if (!donut) {
+            return;
+        }
+
+        if (sessionTotal <= 0) {
+
+            donut.style.background =
+                "conic-gradient(#1a2e49 0deg 360deg)";
+
+            return;
+        }
+
+
+        const successPercent =
+            sessionSuccess /
+            sessionTotal;
+
+        const errorPercent =
+            sessionError /
+            sessionTotal;
+
+        const successDeg =
+            successPercent * 360;
+
+        const errorDeg =
+            errorPercent * 360;
+
+        const errorEnd =
+            Math.min(
+                360,
+                successDeg + errorDeg
+            );
+
+
+        donut.style.background =
+            "conic-gradient(" +
+            "#24d18b 0deg " +
+            successDeg +
+            "deg," +
+            "#ff526c " +
+            successDeg +
+            "deg " +
+            errorEnd +
+            "deg," +
+            "#1684ff " +
+            errorEnd +
+            "deg 360deg" +
+            ")";
+    }
+
+
+    /* =========================
+       ACTIVITY
+    ========================= */
+
+    function addActivity(
+        text,
+        type
+    ) {
+
+        const list =
+            document.getElementById(
+                "activityList"
+            );
+
+        if (!list) {
+            return;
+        }
+
+
+        const item =
+            document.createElement(
+                "div"
+            );
+
+        item.className =
+            "activity-item";
+
+
+        const dot =
+            document.createElement(
+                "span"
+            );
+
+        dot.className =
+            "activity-dot";
+
+
+        if (type === "error") {
+            dot.style.background =
+                "#ff526c";
+        }
+
+        if (type === "processing") {
+            dot.style.background =
+                "#8b5cf6";
+        }
+
+
+        const content =
+            document.createElement(
+                "span"
+            );
+
+
+        const now =
+            new Date();
+
+        const time =
+            now.toLocaleTimeString(
+                "vi-VN",
+                {
+                    hour: "2-digit",
+                    minute: "2-digit"
+                }
+            );
+
+
+        content.textContent =
+            time + " · " + text;
+
+
+        item.appendChild(dot);
+        item.appendChild(content);
+
+        list.prepend(item);
+
+
+        while (
+            list.children.length > 6
+        ) {
+            list.removeChild(
+                list.lastElementChild
+            );
+        }
     }
 
 
@@ -2174,57 +3525,79 @@
     ========================= */
 
     const uploadForm =
-        document.getElementById("uploadForm");
+        document.getElementById(
+            "uploadForm"
+        );
 
     const videoFile =
-        document.getElementById("videoFile");
+        document.getElementById(
+            "videoFile"
+        );
 
     const chooseVideo =
-        document.getElementById("chooseVideo");
+        document.getElementById(
+            "chooseVideo"
+        );
 
     const dropZone =
-        document.getElementById("dropZone");
+        document.getElementById(
+            "dropZone"
+        );
 
     const selectedFile =
-        document.getElementById("selectedFile");
+        document.getElementById(
+            "selectedFile"
+        );
 
     const selectedName =
-        document.getElementById("selectedName");
+        document.getElementById(
+            "selectedName"
+        );
 
     const selectedSize =
-        document.getElementById("selectedSize");
+        document.getElementById(
+            "selectedSize"
+        );
 
     const uploadButton =
-        document.getElementById("uploadButton");
+        document.getElementById(
+            "uploadButton"
+        );
 
     const uploadStatus =
-        document.getElementById("uploadStatus");
+        document.getElementById(
+            "uploadStatus"
+        );
 
     const downloadLink =
-        document.getElementById("downloadLink");
+        document.getElementById(
+            "downloadLink"
+        );
+
 
     let currentSelectedFile = null;
 
-    let sessionTotal = 0;
-    let sessionSuccess = 0;
-
 
     function formatBytes(bytes) {
+
         if (!bytes) {
             return "0 MB";
         }
 
-        const mb =
-            bytes / 1024 / 1024;
-
-        return mb.toFixed(2) + " MB";
+        return (
+            bytes /
+            1024 /
+            1024
+        ).toFixed(2) + " MB";
     }
 
 
     function setSelectedFile(file) {
+
         if (!file) {
             return;
         }
+
 
         const allowed = [
             "mp4",
@@ -2235,58 +3608,112 @@
             "m4v"
         ];
 
+
         const extension =
             file.name
                 .split(".")
                 .pop()
                 .toLowerCase();
 
-        if (!allowed.includes(extension)) {
-            alert("Định dạng video không được hỗ trợ.");
+
+        if (
+            !allowed.includes(
+                extension
+            )
+        ) {
+
+            alert(
+                "Định dạng video không được hỗ trợ."
+            );
+
             return;
         }
+
 
         const maxSize =
-            500 * 1024 * 1024;
+            500 *
+            1024 *
+            1024;
 
-        if (file.size > maxSize) {
-            alert("Video vượt quá 500 MB.");
+
+        if (
+            file.size >
+            maxSize
+        ) {
+
+            alert(
+                "Video vượt quá 500 MB."
+            );
+
             return;
         }
 
-        currentSelectedFile = file;
 
-        selectedName.textContent =
-            "🎬 " + file.name;
+        currentSelectedFile =
+            file;
 
-        selectedSize.textContent =
-            formatBytes(file.size);
 
-        selectedFile.classList.add("show");
+        if (selectedName) {
+            selectedName.textContent =
+                "🎬 " + file.name;
+        }
 
-        downloadLink.classList.remove("show");
+        if (selectedSize) {
+            selectedSize.textContent =
+                formatBytes(
+                    file.size
+                );
+        }
 
-        uploadStatus.textContent =
-            "Video đã sẵn sàng để upload.";
+        if (selectedFile) {
+            selectedFile.classList.add(
+                "show"
+            );
+        }
+
+        if (downloadLink) {
+            downloadLink.classList.remove(
+                "show"
+            );
+        }
+
+        if (uploadStatus) {
+            uploadStatus.textContent =
+                "Video đã sẵn sàng.";
+        }
     }
 
 
-    if (chooseVideo && videoFile) {
+    if (
+        chooseVideo &&
+        videoFile
+    ) {
+
         chooseVideo.addEventListener(
             "click",
             function() {
+
                 videoFile.click();
+
             }
         );
+
 
         videoFile.addEventListener(
             "change",
             function() {
-                if (this.files.length) {
+
+                if (
+                    this.files &&
+                    this.files.length
+                ) {
+
                     setSelectedFile(
                         this.files[0]
                     );
+
                 }
+
             }
         );
     }
@@ -2294,14 +3721,22 @@
 
     if (dropZone) {
 
-        ["dragenter", "dragover"].forEach(
+        [
+            "dragenter",
+            "dragover"
+        ].forEach(
             function(eventName) {
 
                 dropZone.addEventListener(
                     eventName,
                     function(event) {
+
                         event.preventDefault();
-                        dropZone.classList.add("drag");
+
+                        dropZone.classList.add(
+                            "drag"
+                        );
+
                     }
                 );
 
@@ -2309,14 +3744,22 @@
         );
 
 
-        ["dragleave", "drop"].forEach(
+        [
+            "dragleave",
+            "drop"
+        ].forEach(
             function(eventName) {
 
                 dropZone.addEventListener(
                     eventName,
                     function(event) {
+
                         event.preventDefault();
-                        dropZone.classList.remove("drag");
+
+                        dropZone.classList.remove(
+                            "drag"
+                        );
+
                     }
                 );
 
@@ -2331,8 +3774,15 @@
                 const files =
                     event.dataTransfer.files;
 
-                if (files.length) {
-                    setSelectedFile(files[0]);
+                if (
+                    files &&
+                    files.length
+                ) {
+
+                    setSelectedFile(
+                        files[0]
+                    );
+
                 }
 
             }
@@ -2344,6 +3794,7 @@
         file,
         downloadUrl
     ) {
+
         const empty =
             document.getElementById(
                 "emptyHistory"
@@ -2359,84 +3810,191 @@
                 "historyBody"
             );
 
+
         if (!body) {
             return;
         }
 
+
         if (empty) {
-            empty.classList.add("hidden");
+            empty.classList.add(
+                "hidden"
+            );
         }
 
         if (wrap) {
-            wrap.classList.remove("hidden");
+            wrap.classList.remove(
+                "hidden"
+            );
         }
 
+
         const row =
-            document.createElement("tr");
+            document.createElement(
+                "tr"
+            );
 
-        const nameCell =
-            document.createElement("td");
 
-        const nameDiv =
-            document.createElement("div");
+        row.dataset.name =
+            file.name.toLowerCase();
 
-        nameDiv.className =
+
+        const indexCell =
+            document.createElement(
+                "td"
+            );
+
+        indexCell.className =
+            "video-index";
+
+        indexCell.textContent =
+            sessionSuccess;
+
+
+        const videoCell =
+            document.createElement(
+                "td"
+            );
+
+
+        const name =
+            document.createElement(
+                "div"
+            );
+
+        name.className =
             "video-name";
 
-        nameDiv.textContent =
+        name.textContent =
             file.name;
 
-        nameCell.appendChild(
-            nameDiv
+
+        const sub =
+            document.createElement(
+                "div"
+            );
+
+        sub.className =
+            "video-sub";
+
+        sub.textContent =
+            "Video đã xử lý";
+
+
+        videoCell.appendChild(
+            name
+        );
+
+        videoCell.appendChild(
+            sub
         );
 
 
         const sizeCell =
-            document.createElement("td");
+            document.createElement(
+                "td"
+            );
 
         sizeCell.textContent =
-            formatBytes(file.size);
+            formatBytes(
+                file.size
+            );
 
 
         const statusCell =
-            document.createElement("td");
+            document.createElement(
+                "td"
+            );
 
-        statusCell.className =
-            "status-success";
 
-        statusCell.textContent =
+        const status =
+            document.createElement(
+                "span"
+            );
+
+        status.className =
+            "status-pill status-success";
+
+        status.textContent =
             "● Thành công";
+
+        statusCell.appendChild(
+            status
+        );
+
+
+        const timeCell =
+            document.createElement(
+                "td"
+            );
+
+        const now =
+            new Date();
+
+        timeCell.textContent =
+            now.toLocaleTimeString(
+                "vi-VN",
+                {
+                    hour: "2-digit",
+                    minute: "2-digit"
+                }
+            );
 
 
         const actionCell =
-            document.createElement("td");
+            document.createElement(
+                "td"
+            );
+
 
         const link =
-            document.createElement("a");
+            document.createElement(
+                "a"
+            );
 
         link.href =
             downloadUrl;
 
+        link.className =
+            "download-table";
+
         link.textContent =
-            "Tải";
+            "↓ Tải";
 
-        link.style.color =
-            "#41c9ff";
-
-        link.style.fontWeight =
-            "800";
 
         actionCell.appendChild(
             link
         );
 
 
-        row.appendChild(nameCell);
-        row.appendChild(sizeCell);
-        row.appendChild(statusCell);
-        row.appendChild(actionCell);
+        row.appendChild(
+            indexCell
+        );
 
-        body.prepend(row);
+        row.appendChild(
+            videoCell
+        );
+
+        row.appendChild(
+            sizeCell
+        );
+
+        row.appendChild(
+            statusCell
+        );
+
+        row.appendChild(
+            timeCell
+        );
+
+        row.appendChild(
+            actionCell
+        );
+
+
+        body.prepend(
+            row
+        );
     }
 
 
@@ -2448,14 +4006,23 @@
 
                 event.preventDefault();
 
-                if (!currentSelectedFile) {
-                    uploadStatus.textContent =
-                        "❌ Vui lòng chọn video.";
+
+                if (
+                    !currentSelectedFile
+                ) {
+
+                    if (uploadStatus) {
+                        uploadStatus.textContent =
+                            "❌ Vui lòng chọn video.";
+                    }
+
                     return;
                 }
 
+
                 const file =
                     currentSelectedFile;
+
 
                 const formData =
                     new FormData();
@@ -2465,18 +4032,43 @@
                     file
                 );
 
-                uploadButton.disabled =
-                    true;
 
-                uploadButton.textContent =
-                    "Đang upload...";
+                sessionTotal += 1;
+                sessionProcessing += 1;
 
-                uploadStatus.textContent =
-                    "⏳ Đang tải video lên máy chủ...";
+                updateDashboard();
 
-                downloadLink.classList.remove(
-                    "show"
+
+                addActivity(
+                    "Bắt đầu xử lý " +
+                    file.name,
+                    "processing"
                 );
+
+
+                if (uploadButton) {
+
+                    uploadButton.disabled =
+                        true;
+
+                    uploadButton.textContent =
+                        "Đang xử lý...";
+
+                }
+
+
+                if (uploadStatus) {
+                    uploadStatus.textContent =
+                        "⏳ Đang tải và xử lý video...";
+                }
+
+
+                if (downloadLink) {
+                    downloadLink.classList.remove(
+                        "show"
+                    );
+                }
+
 
                 try {
 
@@ -2489,46 +4081,52 @@
                             }
                         );
 
-                    const data =
-                        await response.json();
+
+                    let data = {};
+
+                    try {
+                        data =
+                            await response.json();
+                    } catch (jsonError) {
+                        data = {};
+                    }
+
 
                     if (
                         !response.ok ||
                         !data.success
                     ) {
+
                         throw new Error(
                             data.error ||
                             "Upload thất bại."
                         );
+
                     }
 
-                    sessionTotal += 1;
+
+                    sessionProcessing =
+                        Math.max(
+                            0,
+                            sessionProcessing - 1
+                        );
+
                     sessionSuccess += 1;
 
-                    const totalElement =
-                        document.getElementById(
-                            "totalVideos"
-                        );
 
-                    const successElement =
-                        document.getElementById(
-                            "successVideos"
-                        );
+                    updateDashboard();
 
-                    if (totalElement) {
-                        totalElement.textContent =
-                            sessionTotal;
+
+                    if (uploadStatus) {
+                        uploadStatus.textContent =
+                            "✅ Upload thành công.";
                     }
 
-                    if (successElement) {
-                        successElement.textContent =
-                            sessionSuccess;
-                    }
 
-                    uploadStatus.textContent =
-                        "✅ Upload thành công.";
-
-                    if (data.download_url) {
+                    if (
+                        downloadLink &&
+                        data.download_url
+                    ) {
 
                         downloadLink.href =
                             data.download_url;
@@ -2537,40 +4135,139 @@
                             "show"
                         );
 
+                    }
+
+
+                    if (
+                        data.download_url
+                    ) {
+
                         addHistory(
                             file,
                             data.download_url
                         );
+
                     }
+
+
+                    addActivity(
+                        "Đã xử lý xong " +
+                        file.name,
+                        "success"
+                    );
+
 
                     currentSelectedFile =
                         null;
 
-                    videoFile.value =
-                        "";
 
-                    selectedFile.classList.remove(
-                        "show"
-                    );
+                    if (videoFile) {
+                        videoFile.value =
+                            "";
+                    }
+
+
+                    if (selectedFile) {
+                        selectedFile.classList.remove(
+                            "show"
+                        );
+                    }
+
 
                 } catch (error) {
 
-                    uploadStatus.textContent =
-                        "❌ " +
-                        (
-                            error.message ||
-                            "Có lỗi xảy ra."
+                    sessionProcessing =
+                        Math.max(
+                            0,
+                            sessionProcessing - 1
                         );
+
+                    sessionError += 1;
+
+
+                    updateDashboard();
+
+
+                    if (uploadStatus) {
+
+                        uploadStatus.textContent =
+                            "❌ " +
+                            (
+                                error.message ||
+                                "Có lỗi xảy ra."
+                            );
+
+                    }
+
+
+                    addActivity(
+                        "Lỗi xử lý " +
+                        file.name,
+                        "error"
+                    );
+
 
                 } finally {
 
-                    uploadButton.disabled =
-                        false;
+                    if (uploadButton) {
 
-                    uploadButton.textContent =
-                        "Bắt đầu Upload";
+                        uploadButton.disabled =
+                            false;
+
+                        uploadButton.textContent =
+                            "Bắt đầu Upload";
+
+                    }
 
                 }
+
+            }
+        );
+    }
+
+
+    /* =========================
+       VIDEO SEARCH
+    ========================= */
+
+    const videoSearch =
+        document.getElementById(
+            "videoSearch"
+        );
+
+
+    if (videoSearch) {
+
+        videoSearch.addEventListener(
+            "input",
+            function() {
+
+                const value =
+                    this.value
+                        .toLowerCase()
+                        .trim();
+
+
+                document
+                    .querySelectorAll(
+                        "#historyBody tr"
+                    )
+                    .forEach(
+                        function(row) {
+
+                            const name =
+                                row.dataset.name ||
+                                "";
+
+                            row.style.display =
+                                name.includes(
+                                    value
+                                )
+                                    ? ""
+                                    : "none";
+
+                        }
+                    );
 
             }
         );
@@ -2582,13 +4279,19 @@
     ========================= */
 
     const userSearch =
-        document.getElementById("userSearch");
+        document.getElementById(
+            "userSearch"
+        );
 
     const planFilter =
-        document.getElementById("planFilter");
+        document.getElementById(
+            "planFilter"
+        );
 
     const statusFilter =
-        document.getElementById("statusFilter");
+        document.getElementById(
+            "statusFilter"
+        );
 
 
     function filterUsers() {
@@ -2598,9 +4301,6 @@
                 ".user-row"
             );
 
-        if (!rows.length) {
-            return;
-        }
 
         const search =
             userSearch
@@ -2609,10 +4309,12 @@
                     .trim()
                 : "";
 
+
         const plan =
             planFilter
                 ? planFilter.value
                 : "all";
+
 
         const status =
             statusFilter
@@ -2623,23 +4325,35 @@
         rows.forEach(
             function(row) {
 
+                const username =
+                    row.dataset.username ||
+                    "";
+
+                const email =
+                    row.dataset.email ||
+                    "";
+
+
                 const matchSearch =
-                    (
-                        row.dataset.username ||
-                        ""
-                    ).includes(search) ||
-                    (
-                        row.dataset.email ||
-                        ""
-                    ).includes(search);
+                    username.includes(
+                        search
+                    ) ||
+                    email.includes(
+                        search
+                    );
+
 
                 const matchPlan =
                     plan === "all" ||
-                    row.dataset.plan === plan;
+                    row.dataset.plan ===
+                    plan;
+
 
                 const matchStatus =
                     status === "all" ||
-                    row.dataset.status === status;
+                    row.dataset.status ===
+                    status;
+
 
                 row.classList.toggle(
                     "hidden-row",
@@ -2678,10 +4392,19 @@
 
 
     /* =========================
+       INITIAL DASHBOARD
+    ========================= */
+
+    updateDashboard();
+
+
+    /* =========================
        SERVICE WORKER
     ========================= */
 
-    if ("serviceWorker" in navigator) {
+    if (
+        "serviceWorker" in navigator
+    ) {
 
         window.addEventListener(
             "load",
@@ -2689,13 +4412,17 @@
 
                 navigator
                     .serviceWorker
-                    .register("/sw.js")
+                    .register(
+                        "/sw.js"
+                    )
                     .catch(
                         function(error) {
+
                             console.log(
                                 "Service Worker:",
                                 error
                             );
+
                         }
                     );
 
