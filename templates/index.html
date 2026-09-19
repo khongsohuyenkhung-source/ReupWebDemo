@@ -860,6 +860,35 @@
             display: none;
         }
 
+        .video-preview-wrap {
+            display: none;
+            margin-top: 12px;
+            padding: 10px;
+            border-radius: 9px;
+            background: #050b14;
+            border: 1px solid #1c3553;
+            text-align: center;
+        }
+
+        .video-preview-wrap.show {
+            display: block;
+        }
+
+        .video-preview {
+            width: 100%;
+            max-width: 320px;
+            max-height: 520px;
+            border-radius: 8px;
+            background: #000;
+            object-fit: contain;
+        }
+
+        .video-preview-note {
+            margin-top: 7px;
+            color: #627791;
+            font-size: 8px;
+        }
+
         .selected-file {
             display: none;
             margin-top: 11px;
@@ -2761,6 +2790,24 @@
 
 
                                         <div
+                                            class="video-preview-wrap"
+                                            id="videoPreviewWrap"
+                                        >
+                                            <video
+                                                id="videoPreview"
+                                                class="video-preview"
+                                                controls
+                                                playsinline
+                                                preload="metadata"
+                                            ></video>
+
+                                            <div class="video-preview-note">
+                                                Xem trước video trước khi Upload
+                                            </div>
+                                        </div>
+
+
+                                        <div
                                             class="selected-file"
                                             id="selectedFile"
                                         >
@@ -3669,8 +3716,19 @@
             "downloadLink"
         );
 
+    const videoPreviewWrap =
+        document.getElementById(
+            "videoPreviewWrap"
+        );
+
+    const videoPreview =
+        document.getElementById(
+            "videoPreview"
+        );
+
 
     let currentSelectedFile = null;
+    let currentPreviewUrl = null;
 
 
     function formatBytes(bytes) {
@@ -3746,6 +3804,29 @@
 
         currentSelectedFile =
             file;
+
+        if (currentPreviewUrl) {
+            URL.revokeObjectURL(
+                currentPreviewUrl
+            );
+        }
+
+        currentPreviewUrl =
+            URL.createObjectURL(
+                file
+            );
+
+        if (videoPreview) {
+            videoPreview.src =
+                currentPreviewUrl;
+            videoPreview.load();
+        }
+
+        if (videoPreviewWrap) {
+            videoPreviewWrap.classList.add(
+                "show"
+            );
+        }
 
 
         if (selectedName) {
@@ -4503,6 +4584,18 @@
     ========================= */
 
     updateDashboard();
+
+
+    window.addEventListener(
+        "beforeunload",
+        function() {
+            if (currentPreviewUrl) {
+                URL.revokeObjectURL(
+                    currentPreviewUrl
+                );
+            }
+        }
+    );
 
 
     /* =========================
