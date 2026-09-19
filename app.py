@@ -23,6 +23,8 @@ import os
 import uuid
 import secrets
 import smtplib
+import subprocess
+import threading
 
 from datetime import datetime, timedelta
 
@@ -106,6 +108,21 @@ ALLOWED_VIDEO_EXTENSIONS = {
 MAX_UPLOAD_SIZE = 500 * 1024 * 1024
 
 app.config["MAX_CONTENT_LENGTH"] = MAX_UPLOAD_SIZE
+
+
+# =========================================================
+# FFMPEG OUTPUT
+# =========================================================
+
+OUTPUT_DIR = os.path.join(
+    BASE_DIR,
+    "outputs"
+)
+
+os.makedirs(
+    OUTPUT_DIR,
+    exist_ok=True
+)
 
 
 def allowed_video(filename):
@@ -244,6 +261,12 @@ class Video(db.Model):
     stored_name = db.Column(
         db.String(500),
         nullable=False,
+        unique=True
+    )
+
+    output_name = db.Column(
+        db.String(500),
+        nullable=True,
         unique=True
     )
 
@@ -388,6 +411,37 @@ def setup_database():
     # -----------------------------------------------------
 
     db.create_all()
+
+
+    # -----------------------------------------------------
+    # VIDEO MIGRATION - OUTPUT NAME
+    # -----------------------------------------------------
+
+    inspector = db.inspect(
+        db.engine
+    )
+
+    table_names = inspector.get_table_names()
+
+    if "video" in table_names:
+
+        video_columns = {
+            column["name"]
+            for column in inspector.get_columns(
+                "video"
+            )
+        }
+
+        if "output_name" not in video_columns:
+
+            with db.engine.connect() as connection:
+
+                connection.exec_driver_sql(
+                    "ALTER TABLE video "
+                    "ADD COLUMN output_name VARCHAR(500)"
+                )
+
+                connection.commit()
 
 
     # -----------------------------------------------------
@@ -691,6 +745,8 @@ def serialize_video(video):
 
         "stored_name": video.stored_name,
 
+        "output_name": video.output_name,
+
         "file_size": video.file_size,
 
         "status": video.status,
@@ -703,12 +759,222 @@ def serialize_video(video):
             else ""
         ),
 
-        "download_url": url_for(
-            "download_video",
-            filename=video.stored_name
+        "download_url": (
+            url_for(
+                "download_output",
+                filename=video.output_name
+            )
+            if video.output_name
+            and video.status == "Completed"
+            else None
         )
 
     }
+
+
+# =========================================================
+# FFMPEG PROCESSOR
+# =========================================================
+
+def process_video_ffmpeg(video_id):
+
+    with app.app_context():
+
+        video = db.session.get(
+            Video,
+            video_id
+        )
+
+        if video is None:
+            return
+
+        input_path = os.path.join(
+            UPLOAD_DIR,
+            video.stored_name
+        )
+
+        output_name = (
+            "processed_"
+            + uuid.uuid4().hex
+            + ".mp4"
+        )
+
+        output_path = os.path.join(
+            OUTPUT_DIR,
+            output_name
+        )
+
+        try:
+
+            video.status = "Processing"
+            video.output_name = None
+
+            db.session.commit()
+
+            if not os.path.isfile(input_path):
+                raise RuntimeError(
+                    "Không tìm thấy file video gốc."
+                )
+
+            command = [
+                "ffmpeg",
+                "-y",
+                "-hide_banner",
+                "-loglevel",
+                "error",
+                "-i",
+                input_path,
+                "-map",
+                "0:v:0",
+                "-map",
+                "0:a?",
+                "-c:v",
+                "libx264",
+                "-preset",
+                "veryfast",
+                "-crf",
+                "23",
+                "-pix_fmt",
+                "yuv420p",
+                "-c:a",
+                "aac",
+                "-b:a",
+                "128k",
+                "-movflags",
+                "+faststart",
+                output_path
+            ]
+
+            result = subprocess.run(
+                command,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                timeout=1800,
+                check=False
+            )
+
+            if result.returncode != 0:
+
+                error_text = (
+                    result.stderr
+                    or "FFmpeg xử lý thất bại."
+                )
+
+                raise RuntimeError(
+                    error_text[-4000:]
+                )
+
+            if not os.path.isfile(output_path):
+
+                raise RuntimeError(
+                    "FFmpeg không tạo được file output."
+                )
+
+            if os.path.getsize(output_path) <= 0:
+
+                raise RuntimeError(
+                    "File output không hợp lệ."
+                )
+
+            video = db.session.get(
+                Video,
+                video_id
+            )
+
+            if video is None:
+
+                try:
+                    os.remove(output_path)
+                except Exception:
+                    pass
+
+                return
+
+            video.output_name = output_name
+            video.status = "Completed"
+
+            db.session.commit()
+
+            print(
+                "[FFMPEG] COMPLETED:",
+                video.id,
+                output_name
+            )
+
+        except subprocess.TimeoutExpired:
+
+            db.session.rollback()
+
+            try:
+                if os.path.isfile(output_path):
+                    os.remove(output_path)
+            except Exception:
+                pass
+
+            video = db.session.get(
+                Video,
+                video_id
+            )
+
+            if video:
+
+                video.output_name = None
+                video.status = "Error"
+
+                db.session.commit()
+
+            print(
+                "[FFMPEG] TIMEOUT:",
+                video_id
+            )
+
+        except FileNotFoundError:
+
+            db.session.rollback()
+
+            video = db.session.get(
+                Video,
+                video_id
+            )
+
+            if video:
+
+                video.output_name = None
+                video.status = "Error"
+
+                db.session.commit()
+
+            print(
+                "[FFMPEG] LOI: Không tìm thấy lệnh ffmpeg."
+            )
+
+        except Exception as e:
+
+            db.session.rollback()
+
+            try:
+                if os.path.isfile(output_path):
+                    os.remove(output_path)
+            except Exception:
+                pass
+
+            video = db.session.get(
+                Video,
+                video_id
+            )
+
+            if video:
+
+                video.output_name = None
+                video.status = "Error"
+
+                db.session.commit()
+
+            print(
+                "[FFMPEG] LOI:",
+                e
+            )
 
 
 # =========================================================
@@ -1628,6 +1894,25 @@ def admin_delete_user(user_id):
                 e
             )
 
+        if video.output_name:
+
+            output_path = os.path.join(
+                OUTPUT_DIR,
+                video.output_name
+            )
+
+            try:
+
+                if os.path.isfile(output_path):
+                    os.remove(output_path)
+
+            except Exception as e:
+
+                print(
+                    "[DELETE OUTPUT FILE] LOI:",
+                    e
+                )
+
     db.session.delete(user)
 
     db.session.commit()
@@ -1825,6 +2110,25 @@ def delete_video(video_id):
             e
         )
 
+    if video.output_name:
+
+        output_path = os.path.join(
+            OUTPUT_DIR,
+            video.output_name
+        )
+
+        try:
+
+            if os.path.isfile(output_path):
+                os.remove(output_path)
+
+        except Exception as e:
+
+            print(
+                "[DELETE OUTPUT] LOI:",
+                e
+            )
+
     db.session.delete(
         video
     )
@@ -1959,7 +2263,7 @@ def upload_video():
 
             file_size=file_size,
 
-            status="Completed",
+            status="Processing",
 
             created_at=datetime.utcnow()
         )
@@ -1992,24 +2296,101 @@ def upload_video():
             "error": "Không thể lưu lịch sử video."
         }), 500
 
+    worker = threading.Thread(
+        target=process_video_ffmpeg,
+        args=(video.id,),
+        daemon=True
+    )
+
+    worker.start()
+
     return jsonify({
 
         "success": True,
 
-        "message": "Upload thành công.",
+        "message": (
+            "Upload thành công. "
+            "Video đang được FFmpeg xử lý."
+        ),
 
         "video": serialize_video(
             video
         ),
 
-        # Giữ field cũ để index.html hiện tại
-        # vẫn tương thích.
-        "download_url": url_for(
-            "download_video",
-            filename=unique_name
-        )
+        "download_url": None
 
     })
+
+
+# =========================================================
+# DOWNLOAD OUTPUT - OWNER ONLY
+# =========================================================
+
+@app.route(
+    "/download-output/<path:filename>"
+)
+def download_output(filename):
+
+    current_user = get_active_user()
+
+    if current_user is None:
+
+        return redirect(
+            url_for("index")
+        )
+
+    video = Video.query.filter_by(
+        output_name=filename,
+        user_id=current_user.id
+    ).first()
+
+    if video is None:
+
+        return jsonify({
+            "success": False,
+            "error": (
+                "Không tìm thấy video đã xử lý "
+                "hoặc bạn không có quyền tải."
+            )
+        }), 404
+
+    if video.status != "Completed":
+
+        return jsonify({
+            "success": False,
+            "error": "Video chưa xử lý xong."
+        }), 409
+
+    file_path = os.path.join(
+        OUTPUT_DIR,
+        video.output_name
+    )
+
+    if not os.path.isfile(file_path):
+
+        return jsonify({
+            "success": False,
+            "error": (
+                "File video đã xử lý "
+                "không còn trên máy chủ."
+            )
+        }), 404
+
+    base_name = os.path.splitext(
+        video.original_name
+    )[0]
+
+    download_name = (
+        base_name
+        + "_processed.mp4"
+    )
+
+    return send_from_directory(
+        OUTPUT_DIR,
+        video.output_name,
+        as_attachment=True,
+        download_name=download_name
+    )
 
 
 # =========================================================
